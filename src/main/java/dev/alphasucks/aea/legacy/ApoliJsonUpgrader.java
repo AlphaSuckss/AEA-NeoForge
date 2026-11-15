@@ -5,11 +5,14 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.JsonOps;
+import dev.alphasucks.aea.gui.GuiPlaceholders;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,8 +65,8 @@ public final class ApoliJsonUpgrader {
                 String up = CommandUpgrader.upgrade(ApoliCommandUpgrader.upgrade(cmd.strip()), dv);
                 if (!up.equals(cmd)) o.addProperty(f, up);
                 // aea:gui_command fills {value}/{player}/{slider:id} at run time: validate it with sample values.
-                Diagnostics.command(dev.alphasucks.aea.gui.GuiPlaceholders.has(up)
-                    ? dev.alphasucks.aea.gui.GuiPlaceholders.apply(up, t -> t.equals("player") ? "Steve" : "0") : up);
+                Diagnostics.command(GuiPlaceholders.has(up)
+                    ? GuiPlaceholders.apply(up, t -> t.equals("player") ? "Steve" : "0") : up);
             }
         }
 
@@ -134,7 +137,7 @@ public final class ApoliJsonUpgrader {
         // Damage "type" condition given a 1.19-style message id ("indirectMagic", "magic.player"): use the damage type id.
         if (type.equals("type") && o.has("damage_type") && o.get("damage_type").isJsonPrimitive()) {
             String dt = o.get("damage_type").getAsString();
-            if (net.minecraft.resources.ResourceLocation.tryParse(dt) == null || !dt.equals(dt.toLowerCase(java.util.Locale.ROOT))) {
+            if (ResourceLocation.tryParse(dt) == null || !dt.equals(dt.toLowerCase(Locale.ROOT))) {
                 o.addProperty("damage_type", legacyDamageTypeId(dt));
             }
         }
@@ -224,7 +227,7 @@ public final class ApoliJsonUpgrader {
         // Sync accepted enum names in any case (e.g. "CROSSBOW_HOLD").
         if (type.equals("pose")) {
             for (String f : new String[]{"arm_pose", "entity_pose"}) {
-                if (o.has(f) && o.get(f).isJsonPrimitive()) o.addProperty(f, o.get(f).getAsString().toLowerCase(java.util.Locale.ROOT));
+                if (o.has(f) && o.get(f).isJsonPrimitive()) o.addProperty(f, o.get(f).getAsString().toLowerCase(Locale.ROOT));
             }
         }
 
@@ -261,9 +264,9 @@ public final class ApoliJsonUpgrader {
         if (c > 0) { ns = msgId.substring(0, c); path = msgId.substring(c + 1); }
         int dot = path.indexOf('.');
         if (dot > 0) path = path.substring(0, dot);
-        String snake = path.replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT);
+        String snake = path.replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase(Locale.ROOT);
         if (snake.equals("out_of_world")) snake = "out_of_world";
-        return ns.toLowerCase(java.util.Locale.ROOT) + ":" + snake;
+        return ns.toLowerCase(Locale.ROOT) + ":" + snake;
     }
 
     private static void stripHud(JsonObject h) {

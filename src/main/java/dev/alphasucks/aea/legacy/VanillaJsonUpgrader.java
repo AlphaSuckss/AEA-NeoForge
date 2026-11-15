@@ -32,7 +32,7 @@ public final class VanillaJsonUpgrader {
         return root;
     }
 
-    // ---------------------------------------------------------------- recipes
+    // Recipes
 
     private static void recipe(JsonObject o, int dv) {
         if (o.has("result")) {
@@ -162,7 +162,7 @@ public final class VanillaJsonUpgrader {
         }
     }
 
-    // ---------------------------------------------------------------- advancements
+    // Advancements
 
     private static final List<String> TRIGGER_ITEM_FIELDS = List.of("item", "items", "tool", "rod", "ingredients", "fired_from_weapon");
     private static final List<String> TRIGGER_ENTITY_FIELDS = List.of("player", "entity", "victims", "parent", "partner", "child",
@@ -239,7 +239,7 @@ public final class VanillaJsonUpgrader {
         }
     }
 
-    // ---------------------------------------------------------------- generic walk
+    // Generic walk
 
     private static final Set<String> ITEM_PREDICATE_KEYS = Set.of("item", "items", "tag", "durability", "enchantments",
         "stored_enchantments", "potion", "nbt", "count");
@@ -304,7 +304,7 @@ public final class VanillaJsonUpgrader {
         return c < 0 ? id : id.substring(c + 1);
     }
 
-    // ---------------------------------------------------------------- loot
+    // Loot
 
     /** 1.21 renamed the loot context entity targets. */
     static String entityTarget(String t) {
@@ -485,7 +485,7 @@ public final class VanillaJsonUpgrader {
         return "any";
     }
 
-    // ---------------------------------------------------------------- predicates
+    // Predicates
 
     private static final Set<String> LOCATION_KEYS = Set.of("position", "biome", "biomes", "structure", "structures",
         "dimension", "light", "block", "fluid", "smokey", "can_see_sky");

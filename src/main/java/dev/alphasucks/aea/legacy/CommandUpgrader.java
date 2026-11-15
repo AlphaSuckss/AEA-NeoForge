@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Rewrites 1.20.1-and-older command syntax to 1.21.1: item NBT → item components, legacy particle
@@ -21,7 +23,7 @@ public final class CommandUpgrader {
         StringBuilder out = new StringBuilder(text.length() + 64);
         String[] raw = text.split("\r?\n", -1);
         // Join "\" line continuations (1.20.2+ syntax, backported to 1.20.1 by AEA's function macros) so the whole command is upgraded at once.
-        java.util.List<String> lines = new java.util.ArrayList<>(raw.length);
+        List<String> lines = new ArrayList<>(raw.length);
         for (int n = 0; n < raw.length; n++) {
             String line = raw[n];
             String t = line.stripLeading();
@@ -56,11 +58,11 @@ public final class CommandUpgrader {
         return out.toString();
     }
 
-    private static final java.util.regex.Pattern MACRO_VAR = java.util.regex.Pattern.compile("\\$\\(([A-Za-z0-9_]+)\\)");
+    private static final Pattern MACRO_VAR = Pattern.compile("\\$\\(([A-Za-z0-9_]+)\\)");
 
-    private static java.util.List<String> macroVars(String s) {
-        java.util.List<String> vars = new java.util.ArrayList<>();
-        java.util.regex.Matcher m = MACRO_VAR.matcher(s);
+    private static List<String> macroVars(String s) {
+        List<String> vars = new ArrayList<>();
+        Matcher m = MACRO_VAR.matcher(s);
         while (m.find()) vars.add(m.group(1));
         return vars;
     }
@@ -85,7 +87,7 @@ public final class CommandUpgrader {
         }
     }
 
-    // ---------------------------------------------------------------- tokenizing
+    // Tokenizing
 
     static List<String> split(String s) {
         List<String> out = new ArrayList<>();
@@ -122,7 +124,7 @@ public final class CommandUpgrader {
         return s.startsWith("minecraft:") ? s.substring(10) : s;
     }
 
-    // ---------------------------------------------------------------- dispatch
+    // Dispatch
 
     private static List<String> upgradeTokens(List<String> t, int start, int dv) {
         List<String> out = new ArrayList<>(t.subList(0, start));
@@ -207,7 +209,7 @@ public final class CommandUpgrader {
         return out;
     }
 
-    private static final java.util.regex.Pattern UUID_RE = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+    private static final Pattern UUID_RE = Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     static String modifierId(String uuid) {
         return "aea:" + uuid.toLowerCase(Locale.ROOT);
@@ -410,7 +412,7 @@ public final class CommandUpgrader {
         return i;
     }
 
-    // ---------------------------------------------------------------- particles
+    // Particles
 
     private static final Set<String> PARAM_PARTICLES = Set.of("dust", "dust_color_transition", "item", "block",
         "falling_dust", "block_marker", "vibration", "sculk_charge", "shriek", "entity_effect", "ambient_entity_effect");
@@ -474,7 +476,7 @@ public final class CommandUpgrader {
         return out;
     }
 
-    // ---------------------------------------------------------------- items / blocks
+    // Items / blocks
 
     static String fixItemArg(String arg, boolean predicate, int dv) {
         int brace = arg.indexOf('{');
@@ -509,7 +511,7 @@ public final class CommandUpgrader {
         return arg.substring(0, brace) + nbt;
     }
 
-    // ---------------------------------------------------------------- selectors
+    // Selectors
 
     static String fixSelector(String tok, int dv) {
         if (!tok.startsWith("@") || tok.length() < 3 || tok.charAt(2) != '[') return tok;
@@ -559,7 +561,7 @@ public final class CommandUpgrader {
         return out;
     }
 
-    // ---------------------------------------------------------------- NBT paths
+    // NBT paths
 
     private static final Set<String> ITEM_HOLDERS = Set.of("Item", "SelectedItem", "ArmorItem", "SaddleItem",
         "DecorItem", "Book", "RecordItem", "FireworksItem", "Inventory", "HandItems", "ArmorItems", "Items", "EnderItems");

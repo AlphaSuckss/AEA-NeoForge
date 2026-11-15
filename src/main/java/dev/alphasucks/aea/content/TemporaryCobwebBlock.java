@@ -13,7 +13,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /** Origins 1.10.2's {@code origins:temporary_cobweb} (Arachnid webbing): a cobweb that disappears after 3 seconds. */
-public class TemporaryCobwebBlock extends WebBlock {
+public final class TemporaryCobwebBlock extends WebBlock {
     public TemporaryCobwebBlock(Properties properties) {
         super(properties);
     }

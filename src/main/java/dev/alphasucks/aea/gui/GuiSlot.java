@@ -7,7 +7,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /** A menu slot backed by an {@code aea:slot} / {@code aea:slot_grid} cell. Positioned by the client screen. */
-public class GuiSlot extends Slot {
+public final class GuiSlot extends Slot {
     public final GuiMenu menu;
     public final GuiModel.SlotDef def;
     /** Render scale applied by the screen (gui_scale_lock). */

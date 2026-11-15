@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.gui;
 
+import dev.alphasucks.aea.gui.power.GuiPower;
 import dev.overgrown.apoli.condition.context.EntityCtx;
 import dev.overgrown.apoli.power.ApoliPowers;
 import dev.overgrown.apoli.power.Power;
@@ -37,7 +38,7 @@ public final class GuiPowers {
         }
         if (container == null || container.isEmpty()) return List.of();
         List<Held> out = new ArrayList<>(2);
-        for (ResourceLocation id : container.powersOfType(AeaGui.POWER_TYPE_ID)) {
+        for (ResourceLocation id : container.powersOfType(GuiPower.ID)) {
             Power p = ApoliPowers.get(id);
             if (p != null && p.config() instanceof GuiConfig cfg) out.add(new Held(id, cfg));
         }
@@ -83,5 +84,12 @@ public final class GuiPowers {
         if (opening != null && opening.player == entity) return opening;
         if (entity instanceof Player player && player.containerMenu instanceof GuiMenu menu && !menu.isClosed()) return menu;
         return null;
+    }
+
+    /** The server-side GUI the entity has open, if any: what the GUI actions work on. */
+    @Nullable
+    public static GuiMenu serverGui(@Nullable Entity entity) {
+        GuiMenu menu = open(entity);
+        return menu != null && !menu.isClient() && menu.model != null ? menu : null;
     }
 }

@@ -1,7 +1,10 @@
 package dev.alphasucks.aea.compat;
 
-import dev.alphasucks.aea.compat.sync.SyncPowers;
-import dev.alphasucks.aea.compat.sync.SyncPowers2;
+import dev.alphasucks.aea.compat.sync.power.ActionOnSendingMessagePower;
+import dev.alphasucks.aea.compat.sync.power.BodyPartDamageModifierPower;
+import dev.alphasucks.aea.compat.sync.power.MobsIgnorePower;
+import dev.alphasucks.aea.compat.sync.power.ModifyEnchantmentDamagePower;
+import dev.alphasucks.aea.compat.sync.power.PreventCreativeFlightPower;
 import dev.overgrown.apoli.condition.context.BiEntityCtx;
 import dev.overgrown.apoli.condition.context.DamageCtx;
 import dev.overgrown.apoli.condition.context.EntityCtx;
@@ -14,7 +17,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
@@ -35,7 +37,7 @@ public final class AEAHooks {
     @SubscribeEvent
     public void onChangeTarget(LivingChangeTargetEvent event) {
         LivingEntity target = event.getNewAboutToBeSetTarget();
-        if (target != null && SyncPowers.MobsIgnore.shouldIgnore(event.getEntity(), target)) event.setCanceled(true);
+        if (target != null && MobsIgnorePower.shouldIgnore(event.getEntity(), target)) event.setCanceled(true);
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
@@ -44,33 +46,33 @@ public final class AEAHooks {
         DamageSource source = event.getSource();
         Entity attacker = source.getEntity();
 
-        if (attacker != null && attacker != victim) SyncPowers.MobsIgnore.provoke(attacker, victim);
+        if (attacker != null && attacker != victim) MobsIgnorePower.provoke(attacker, victim);
 
         float amount = event.getAmount();
         float bonus = 0;
         if (attacker instanceof LivingEntity la) {
-            for (SyncPowers.EnchDamageCfg c : PowerLookup.active(la, SyncPowers.ENCH_DEALT, SyncPowers.EnchDamageCfg.class)) {
+            for (ModifyEnchantmentDamagePower.Config c : PowerLookup.active(la, ModifyEnchantmentDamagePower.DEALT, ModifyEnchantmentDamagePower.Config.class)) {
                 if (!enchApplies(c, source, amount, la, victim)) continue;
                 if (c.targetCondition().isPresent() && !c.targetCondition().get().test(EntityCtx.of(victim, victim.level()))) continue;
-                float b = SyncPowers.EnchDamage.bonus(c, la);
+                float b = ModifyEnchantmentDamagePower.bonus(c, la);
                 if (b != 0) { bonus += b; c.bientityAction().ifPresent(a -> a.run(BiEntityCtx.of(la, victim, victim.level()))); }
             }
-            for (SyncPowers.EnchDamageCfg c : PowerLookup.active(victim, SyncPowers.ENCH_TAKEN, SyncPowers.EnchDamageCfg.class)) {
+            for (ModifyEnchantmentDamagePower.Config c : PowerLookup.active(victim, ModifyEnchantmentDamagePower.TAKEN, ModifyEnchantmentDamagePower.Config.class)) {
                 if (!enchApplies(c, source, amount, la, victim)) continue;
-                float b = SyncPowers.EnchDamage.bonus(c, la);
+                float b = ModifyEnchantmentDamagePower.bonus(c, la);
                 if (b != 0) { bonus += b; c.bientityAction().ifPresent(a -> a.run(BiEntityCtx.of(la, victim, victim.level()))); }
             }
         }
         amount += bonus;
 
-        List<SyncPowers2.BodyCfg> body = PowerLookup.active(victim, SyncPowers.BODY_PART, SyncPowers2.BodyCfg.class);
+        List<BodyPartDamageModifierPower.Config> body = PowerLookup.active(victim, BodyPartDamageModifierPower.ID, BodyPartDamageModifierPower.Config.class);
         if (!body.isEmpty()) {
-            for (SyncPowers2.BodyCfg c : body) {
+            for (BodyPartDamageModifierPower.Config c : body) {
                 if (c.damageCondition().isPresent() && !c.damageCondition().get().test(new DamageCtx(source, victim, victim.level(), amount))) continue;
                 Vec3 hit = hitLocation(victim, source, c.requireHitData());
                 if (hit == null) continue;
                 double before = amount;
-                for (SyncPowers2.Entry e : c.entries()) {
+                for (BodyPartDamageModifierPower.Entry e : c.entries()) {
                     if (!e.region().contains(hit.x, hit.y, hit.z)) continue;
                     amount = AttributeModifierHelper.apply(amount, e.modifiers(), victim);
                     if (attacker != null) e.action().ifPresent(a -> a.run(BiEntityCtx.of(attacker, victim, victim.level())));
@@ -85,7 +87,7 @@ public final class AEAHooks {
         if (amount != event.getAmount()) event.setAmount(Math.max(0, amount));
     }
 
-    private static boolean enchApplies(SyncPowers.EnchDamageCfg c, DamageSource source, float amount, LivingEntity attacker, LivingEntity victim) {
+    private static boolean enchApplies(ModifyEnchantmentDamagePower.Config c, DamageSource source, float amount, LivingEntity attacker, LivingEntity victim) {
         if (c.damageCondition().isPresent() && !c.damageCondition().get().test(new DamageCtx(source, victim, victim.level(), amount))) return false;
         return c.bientityCondition().isEmpty() || c.bientityCondition().get().test(BiEntityCtx.of(attacker, victim, victim.level()));
     }
@@ -137,11 +139,11 @@ public final class AEAHooks {
     public void onPlayerTick(PlayerTickEvent.Post event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (player.isCreative() || player.isSpectator()) return;
-        List<SyncPowers.FlightCfg> list = PowerLookup.active(player, SyncPowers.PREVENT_CREATIVE_FLIGHT, SyncPowers.FlightCfg.class);
+        List<PreventCreativeFlightPower.Config> list = PowerLookup.active(player, PreventCreativeFlightPower.ID, PreventCreativeFlightPower.Config.class);
         if (list.isEmpty()) return;
         boolean flying = player.getAbilities().flying;
         if (flying || player.getAbilities().mayfly) {
-            if (flying) for (SyncPowers.FlightCfg a : list) a.action().ifPresent(x -> x.run(EntityCtx.of(player, player.level())));
+            if (flying) for (PreventCreativeFlightPower.Config a : list) a.action().ifPresent(x -> x.run(EntityCtx.of(player, player.level())));
             player.getAbilities().flying = false;
             player.getAbilities().mayfly = false;
             player.onUpdateAbilities();
@@ -151,15 +153,15 @@ public final class AEAHooks {
     @SubscribeEvent
     public void onChat(ServerChatEvent event) {
         ServerPlayer player = event.getPlayer();
-        List<SyncPowers2.MessageCfg> cfgs = new ArrayList<>(PowerLookup.active(player, SyncPowers.SENDING_MESSAGE, SyncPowers2.MessageCfg.class));
+        List<ActionOnSendingMessagePower.Config> cfgs = new ArrayList<>(PowerLookup.active(player, ActionOnSendingMessagePower.ID, ActionOnSendingMessagePower.Config.class));
         if (cfgs.isEmpty()) return;
-        cfgs.sort(Comparator.comparingInt(SyncPowers2.MessageCfg::priority).reversed());
+        cfgs.sort(Comparator.comparingInt(ActionOnSendingMessagePower.Config::priority).reversed());
         String original = event.getRawText();
         String current = original;
-        for (SyncPowers2.MessageCfg c : cfgs) {
+        for (ActionOnSendingMessagePower.Config c : cfgs) {
             if (c.messageType().isPresent() && !c.messageType().get().toString().equals("minecraft:chat")) continue;
             boolean prevented = false;
-            for (SyncPowers2.Consumer con : c.consumers()) {
+            for (ActionOnSendingMessagePower.Filter con : c.filters()) {
                 if (!con.matches(current)) continue;
                 con.before().ifPresent(a -> a.run(EntityCtx.of(player, player.level())));
                 current = con.apply(current);
@@ -175,7 +177,4 @@ public final class AEAHooks {
         if (!current.equals(original)) event.setMessage(Component.literal(current));
     }
 
-    static boolean isPlayer(Entity e) {
-        return e instanceof Player;
-    }
 }

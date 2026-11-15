@@ -6,8 +6,6 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.alphasucks.aea.AEA;
 import dev.alphasucks.aea.legacy.NbtUpgrader;
-import dev.overgrown.apoli.action.ActionType;
-import dev.overgrown.apoli.condition.context.ItemCtx;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
@@ -89,11 +87,8 @@ public final class LegacyItemMerge {
         }
     }
 
-    public static MapCodec<Patch> codecFor(String field) {
-        return codec(field);
-    }
-
-    static MapCodec<Patch> codec(String field) {
+    /** The patch read from the SNBT string in {@code field}; the upgraders record the source data version in {@code aea_data_version}. */
+    public static MapCodec<Patch> codec(String field) {
         return RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.STRING.comapFlatMap(s -> {
                 CompoundTag t = NbtUpgrader.parse(s);
@@ -101,19 +96,5 @@ public final class LegacyItemMerge {
             }, Tag::toString).fieldOf(field).forGetter(p -> p.legacy),
             Codec.INT.optionalFieldOf("aea_data_version", 3465).forGetter(p -> p.dataVersion)
         ).apply(i, Patch::new));
-    }
-
-    /** {@code aea:legacy_merge_nbt}: what {@code origins:merge_nbt} did on 1.20.1. */
-    public static final class Action implements ActionType<ItemCtx, Patch> {
-        @Override
-        public MapCodec<Patch> codec() {
-            return LegacyItemMerge.codec("nbt");
-        }
-
-        @Override
-        public void run(Patch patch, ItemCtx ctx) {
-            if (ctx.level() == null) return;
-            patch.apply(ctx.stack(), ctx.level().registryAccess());
-        }
     }
 }

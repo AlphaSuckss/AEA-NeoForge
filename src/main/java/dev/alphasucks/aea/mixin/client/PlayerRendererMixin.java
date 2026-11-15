@@ -1,7 +1,7 @@
 package dev.alphasucks.aea.mixin.client;
 
 import dev.alphasucks.aea.client.AEAClient;
-import dev.alphasucks.aea.compat.sync.SyncPowers;
+import dev.alphasucks.aea.compat.sync.power.EntityTextureOverlayPower;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.resources.PlayerSkin;
@@ -18,7 +18,7 @@ public abstract class PlayerRendererMixin {
     @Inject(method = "getTextureLocation(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/resources/ResourceLocation;",
         at = @At("RETURN"), cancellable = true)
     private void aea$replaceSkin(AbstractClientPlayer player, CallbackInfoReturnable<ResourceLocation> cir) {
-        Optional<SyncPowers.OverlayCfg> o = AEAClient.overlay(player);
+        Optional<EntityTextureOverlayPower.Config> o = AEAClient.overlay(player);
         if (o.isEmpty() || o.get().asOverlay()) return;
         o.get().texture(player.getSkin().model() == PlayerSkin.Model.SLIM).ifPresent(cir::setReturnValue);
     }
