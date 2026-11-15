@@ -22,6 +22,7 @@ The port's smoke tests live in `src/selftest/java` and are not in the release ja
 | `gui/` | AEA's data-driven GUI: power `aea:gui`, actions `open_gui` `close_gui` `gui_command` `gui_slot_action` `modify_gui_slot` `gui_craft`, conditions `gui_open` `gui_slot` `gui_value`. Server menu/session/memory + NeoForge payloads; `gui/client` is the screen. |
 | `hitbox/` | `aea:hitbox_part`: extra hit boxes that follow an entity's body. `HitboxPart` is a NeoForge `PartEntity`; `HitboxParts` keeps an entity's boxes in step with its powers on the server and syncs them; `hitbox/client` builds the client copies and outlines them with F3 + B. |
 | `textures/` | Data pack textures: PNG files under `data/<namespace>/textures/` are sent to players and registered under `<namespace>:textures/...`. `PackTextures` is the server side, `textures/client` downloads, caches and registers them. |
+| `assets/` | Data pack assets: the `assets/` folder of the world's data packs is sent to players and loaded as a resource pack. `PackAssets` is the server side; `assets/client` downloads and caches the files, offers them to the game as an always-on pack (`AssetPackResources`) and reloads resources. |
 | `mobai/` | AEA's `aea:mob_ai` (goals `target` `wander` `look_around` `look_at` `melee_attack` `follow` `flee` `custom` `retaliate`, removal, `never_target`, `attack_damage`) and `aea:mob_pathing`; `mobai/mixin/fix` holds AEA's tamed-target fix. |
 | `compat/AEALoot` | `origins:origin` and `apoli:power` loot conditions (predicates). |
 | `command/` | `/aea validate`, `/aea validate fields`, `/aea upgrade <command>`, Pehkui-compatible `/scale` when Pehkui is absent. |
@@ -32,7 +33,10 @@ The port's smoke tests live in `src/selftest/java` and are not in the release ja
 The docs are at https://alphasuckss.github.io/AEA-Docs/. Their source is in the [AEA-Docs](https://github.com/AlphaSuckss/AEA-Docs) repository.
 
 ## Config
-`config/aea-common.toml` → `legacy_datapacks.enabled` (default true), `legacy_datapacks.log_rewrites`, `data_pack_textures.enabled` (default true).
+`config/aea-common.toml` → `legacy_datapacks.enabled` (default true), `legacy_datapacks.log_rewrites`, `data_pack_textures.enabled` (default true), `data_pack_assets.enabled` (default true).
+
+## Changes
+See `CHANGELOG.md`. Every change goes in there, under the version it ships in.
 
 ## License
 MIT, see `LICENSE`. Third-party material: see `THIRD_PARTY.md`.

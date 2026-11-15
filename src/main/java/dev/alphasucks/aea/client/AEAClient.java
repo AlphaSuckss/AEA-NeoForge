@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.alphasucks.aea.compat.sync.power.EntityTextureOverlayPower;
 import dev.alphasucks.aea.compat.sync.power.FlipModelPower;
 import dev.alphasucks.aea.gui.client.AeaGuiClient;
+import dev.alphasucks.aea.assets.client.ClientPackAssets;
 import dev.alphasucks.aea.hitbox.client.ClientHitboxParts;
 import dev.alphasucks.aea.textures.client.ClientPackTextures;
 import dev.overgrown.apoli.client.ClientResolvedPowers;
@@ -42,6 +43,7 @@ public final class AEAClient {
         AeaGuiClient.init(modBus);
         ClientHitboxParts.init();
         ClientPackTextures.init();
+        ClientPackAssets.init(modBus);
         NeoForge.EVENT_BUS.addListener(AEAClient::cameraAngles);
         NeoForge.EVENT_BUS.addListener(AEAClient::renderArm);
     }
