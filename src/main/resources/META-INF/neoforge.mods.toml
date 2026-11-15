@@ -1,0 +1,57 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="aea"
+version="1.2.0"
+displayName="AEA"
+logoFile="aea_logo.png"
+authors="AlphaSucks"
+credits="Overgrown (Apoli, Origins, Sync), apace100 (original Origins/Apoli)"
+
+description='''
+AEA for Overgrown's Origins — Alpha's Everything Addon.
+Runs Origins 1.10.2 / Apoli 2.9.2 data packs (Minecraft 1.20.1) and the Sync 1.11.8 power types on Overgrown's Apoli + Origins for NeoForge 1.21.1.
+Includes AEA's own types (aea:gui, aea:mob_ai, aea:mob_pathing, aea:velocity_immunity).
+'''
+
+[[mixins]]
+config="aea.mixins.json"
+
+[[mixins]]
+config="aea-mobai.mixins.json"
+
+[[mixins]]
+config="aea-gui.mixins.json"
+
+[[mixins]]
+config="aea-apoli.mixins.json"
+
+[[dependencies.aea]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.265,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.aea]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1]"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.aea]]
+    modId="apoli"
+    type="required"
+    versionRange="[1.124.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.aea]]
+    modId="origins"
+    type="required"
+    versionRange="[1.49.0,)"
+    ordering="AFTER"
+    side="BOTH"

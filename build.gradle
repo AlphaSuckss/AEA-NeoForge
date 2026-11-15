@@ -1,0 +1,37 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+version = "${mod_version}+neoforge-${minecraft_version}"
+group = 'dev.alphasucks.aea'
+base { archivesName = 'aea' }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = project.neo_version
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+    runs {
+        client { client() }
+        server {
+            server()
+            programArgument '--nogui'
+            // Enables /aea selftest (grants every power to a test mob). Never ship a server with this on.
+            systemProperty 'aea.selftest', 'true'
+        }
+    }
+    mods {
+        aea { sourceSet(sourceSets.main) }
+    }
+}
+
+dependencies {
+    // Put Overgrown's jars in libs/ (apoli-1.124.0.jar, origins-1.49.0.jar).
+    implementation files('libs/apoli-1.124.0.jar', 'libs/origins-1.49.0.jar')
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
