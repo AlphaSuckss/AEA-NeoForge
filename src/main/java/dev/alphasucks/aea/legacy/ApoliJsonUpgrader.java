@@ -245,6 +245,39 @@ public final class ApoliJsonUpgrader {
         "generation", "EntityTag", "ChargedProjectiles", "Charged", "LodestonePos", "LodestoneDimension", "LodestoneTracked",
         "BucketVariantTag", "CanDestroy", "CanPlaceOn"};
 
+    /** Apoli 2.9 power types whose {@code key} defaulted to the primary active key. */
+    private static final Set<String> KEYED_POWERS =
+        Set.of("active_self", "launch", "toggle", "toggle_night_vision", "inventory", "fire_projectile");
+
+    /**
+     * On Apoli 2.9 a power without a {@code key} used Origins' primary active key (G). Overgrown's default is its own
+     * {@code key.apoli.primary_active}, which is unbound, so such powers could never be triggered. Write the 2.9 default in.
+     */
+    public static void defaultKeys(JsonElement root) {
+        if (!(root instanceof JsonObject o)) return;
+        defaultKey(o);
+        for (Map.Entry<String, JsonElement> e : o.entrySet()) {
+            if (e.getValue() instanceof JsonObject sub && sub.has("type")) defaultKeys(sub);
+        }
+    }
+
+    private static void defaultKey(JsonObject o) {
+        if (!o.has("type") || !o.get("type").isJsonPrimitive()) return;
+        String type = o.get("type").getAsString();
+        int c = type.indexOf(':');
+        String ns = c < 0 ? "apoli" : type.substring(0, c);
+        if (!ns.equals("origins") && !ns.equals("apoli")) return;
+        if (!KEYED_POWERS.contains(type.substring(c + 1))) return;
+        JsonElement k = o.get("key");
+        if (k == null || k.isJsonNull()) {
+            JsonObject key = new JsonObject();
+            key.addProperty("key", "key.origins.primary_active");
+            o.add("key", key);
+        } else if (k instanceof JsonObject ko && !ko.has("key")) {
+            ko.addProperty("key", "key.origins.primary_active");
+        }
+    }
+
     private static String legacyKey(String key) {
         return switch (key) {
             case "primary", "none" -> "key.origins.primary_active";

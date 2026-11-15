@@ -264,6 +264,7 @@ public final class LegacyResources {
                         el = WorldgenUpgrader.upgrade(el);
                     } else if (apoli) {
                         if (cat.equals("badges") && el.isJsonObject()) ApoliJsonUpgrader.defaultBadgeType(el.getAsJsonObject());
+                        if (cat.equals("powers")) ApoliJsonUpgrader.defaultKeys(el);
                         el = ApoliJsonUpgrader.upgrade(el, info.dataVersion());
                         if (cat.equals("powers") && Diagnostics.POWERS.size() < 50000) Diagnostics.POWERS.put(id, el);
                     } else if (info.upgradeContent()) {
