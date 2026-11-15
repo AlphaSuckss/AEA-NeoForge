@@ -1,0 +1,21 @@
+{
+  "type": "apoli:modify_falling",
+  "velocity": 0.0,
+  "take_fall_damage": false,
+  "condition": {
+    "type": "apoli:and",
+    "conditions": [
+      {
+        "type": "apoli:fluid_height",
+        "fluid": "minecraft:water",
+        "comparison": "==",
+        "compare_to": 0,
+        "inverted": true
+      },
+      {
+        "type": "apoli:sneaking",
+        "inverted": true
+      }
+    ]
+  }
+}

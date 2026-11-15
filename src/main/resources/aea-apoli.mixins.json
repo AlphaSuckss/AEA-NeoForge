@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.alphasucks.aea.compat.legacy.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ApoliPermissionsMixin",
+    "ConduitOnLandMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

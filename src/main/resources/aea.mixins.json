@@ -1,0 +1,26 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.alphasucks.aea.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "legacy.PathPackResourcesMixin",
+    "legacy.FilePackResourcesMixin",
+    "common.LivingEntityMixin",
+    "common.MonsterMixin",
+    "common.EntityMixin",
+    "common.PowderSnowBlockMixin",
+    "common.BlockMixin",
+    "common.PhantomSpawnerMixin",
+    "common.AddVelocityEntityMixin",
+    "common.AddVelocityBiEntityMixin"
+  ],
+  "client": [
+    "client.LivingEntityRendererMixin",
+    "client.PlayerRendererMixin",
+    "client.CapeLayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

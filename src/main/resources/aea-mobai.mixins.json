@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.alphasucks.aea.mobai.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AttributeMapAccessor",
+    "BrainMixin",
+    "GroundPathNavigationMixin",
+    "LivingEntityCanAttackMixin",
+    "MobAiMixin",
+    "NodeEvaluatorMixin",
+    "PathNavigationMixin",
+    "WalkNodeEvaluatorMixin",
+    "fix.TamedStaleTargetMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

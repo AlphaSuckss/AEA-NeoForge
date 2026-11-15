@@ -1,0 +1,9 @@
+{
+  "type": "apoli:modify_block_stuck_speed",
+  "block_condition": {
+    "type": "apoli:in_tag",
+    "tag": "origins:cobwebs"
+  },
+  "multiplier": 1.0,
+  "hidden": true
+}
