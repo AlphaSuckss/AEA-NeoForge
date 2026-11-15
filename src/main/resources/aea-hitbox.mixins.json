@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.alphasucks.aea.hitbox.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LivingEntityHitboxMixin",
+    "ProjectileOwnPartMixin",
+    "ServerLevelPartsAccessor"
+  ],
+  "client": [
+    "ClientLevelPartsAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

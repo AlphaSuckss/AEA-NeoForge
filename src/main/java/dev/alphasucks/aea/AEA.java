@@ -8,6 +8,8 @@ import dev.alphasucks.aea.compat.AEALoot;
 import dev.alphasucks.aea.compat.AEATypes;
 import dev.alphasucks.aea.content.TemporaryCobwebBlock;
 import dev.alphasucks.aea.gui.AeaGui;
+import dev.alphasucks.aea.hitbox.HitboxParts;
+import dev.alphasucks.aea.textures.PackTextures;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -63,6 +65,8 @@ public final class AEA {
         NeoForge.EVENT_BUS.register(new AEACommands());
         modBus.addListener(RegisterEvent.class, AEA::onRegister);
         AeaGui.register(modBus);
+        HitboxParts.register(modBus);
+        PackTextures.register(modBus);
         if (FMLEnvironment.dist.isClient()) {
             AEAClient.init(modBus);
         }
