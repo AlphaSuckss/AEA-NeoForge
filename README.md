@@ -20,6 +20,8 @@ The port's smoke tests live in `src/selftest/java` and are not in the release ja
 | `compat/legacy/` | Apoli 2.9 / Origins 1.10 types Overgrown dropped (`set_resource`, `side`, `category`, `material`, `fluid`, `launch`, `modify_lava_speed`, `modify_insomnia_ticks`, `modify_fluid_render`) and the legacy item `nbt` condition. |
 | `compat/addon/` | Types used by community packs: `aea:velocity_immunity` (AEA 1.5.4 semantics), `moborigins:walk_on_powder_snow`, `apugli:mobs_ignore`, `apoli:damage_immunity`, `apoli:modify_drops`, damage conditions `damage_type` / `attacker_action` / `command`. |
 | `gui/` | AEA's data-driven GUI: power `aea:gui`, actions `open_gui` `close_gui` `gui_command` `gui_slot_action` `modify_gui_slot` `gui_craft`, conditions `gui_open` `gui_slot` `gui_value`. Server menu/session/memory + NeoForge payloads; `gui/client` is the screen. |
+| `hitbox/` | `aea:hitbox_part`: extra hit boxes that follow an entity's body. `HitboxPart` is a NeoForge `PartEntity`; `HitboxParts` keeps an entity's boxes in step with its powers on the server and syncs them; `hitbox/client` builds the client copies and outlines them with F3 + B. |
+| `textures/` | Data pack textures: PNG files under `data/<namespace>/textures/` are sent to players and registered under `<namespace>:textures/...`. `PackTextures` is the server side, `textures/client` downloads, caches and registers them. |
 | `mobai/` | AEA's `aea:mob_ai` (goals `target` `wander` `look_around` `look_at` `melee_attack` `follow` `flee` `custom` `retaliate`, removal, `never_target`, `attack_damage`) and `aea:mob_pathing`; `mobai/mixin/fix` holds AEA's tamed-target fix. |
 | `compat/AEALoot` | `origins:origin` and `apoli:power` loot conditions (predicates). |
 | `command/` | `/aea validate`, `/aea validate fields`, `/aea upgrade <command>`, Pehkui-compatible `/scale` when Pehkui is absent. |
@@ -30,7 +32,7 @@ The port's smoke tests live in `src/selftest/java` and are not in the release ja
 The docs are at https://alphasuckss.github.io/AEA-Docs/. Their source is in the [AEA-Docs](https://github.com/AlphaSuckss/AEA-Docs) repository.
 
 ## Config
-`config/aea-common.toml` → `legacy_datapacks.enabled` (default true), `log_rewrites`.
+`config/aea-common.toml` → `legacy_datapacks.enabled` (default true), `legacy_datapacks.log_rewrites`, `data_pack_textures.enabled` (default true).
 
 ## License
 MIT, see `LICENSE`. Third-party material: see `THIRD_PARTY.md`.
