@@ -34,7 +34,11 @@ import java.util.Optional;
 /**
  * Client side of data pack assets. Files are kept in a cache folder under their hash, so each one is downloaded once.
  * When every file of the server's list is there, they are offered to the game as a resource pack that is always on,
- * and resources are reloaded. Leaving the server takes the pack away again.
+ * and resources are reloaded.
+ *
+ * <p>Reloading is the slow part, so it only happens when the set of files changes. The pack stays loaded after the
+ * player leaves, and it is remembered on disk so the next game start loads it with everything else. Joining the same
+ * server again then costs nothing.
  */
 public final class ClientPackAssets {
     private ClientPackAssets() {}
@@ -64,15 +68,68 @@ public final class ClientPackAssets {
     /** The files of the pack the game is using now, or null when there is none. */
     private static volatile Map<ResourceLocation, Path> active;
     private static String activeHash = "";
+    /** Whether that pack replaces files of another pack. Such a pack must not outlive the server it came from. */
+    private static boolean activeOverrides;
 
     public static void init(IEventBus modBus) {
+        restore();
         modBus.addListener(ClientPackAssets::addPack);
+        // The pack is kept when the player leaves, so there is nothing to reload. Only a download in progress stops.
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, e -> {
             generation = -1;
             pending = List.of();
             INCOMING.clear();
-            apply(null, "");
         });
+    }
+
+    private static Path stateFile() {
+        return FMLPaths.GAMEDIR.get().resolve("aea-asset-cache").resolve("active.txt");
+    }
+
+    /** Brings back the pack that was loaded when the game last closed, so it loads with the rest at startup. */
+    private static void restore() {
+        try {
+            Path state = stateFile();
+            if (!Files.isRegularFile(state)) return;
+            List<String> lines = Files.readAllLines(state);
+            if (lines.size() < 3 || !hex40(lines.get(0))) return;
+            Map<ResourceLocation, Path> files = new HashMap<>();
+            for (String line : lines.subList(2, lines.size())) {
+                int tab = line.indexOf('\t');
+                if (tab < 0) return;
+                String path = line.substring(0, tab);
+                String hash = line.substring(tab + 1);
+                Path file = cacheFile(hash);
+                // A missing file means the cache was cleared: start without the pack and let the server send it again.
+                if (!PackAssets.valid(path) || !hex40(hash) || !Files.isRegularFile(file)) return;
+                int slash = path.indexOf('/');
+                ResourceLocation id = ResourceLocation.tryBuild(path.substring(0, slash), path.substring(slash + 1));
+                if (id != null) files.put(id, file);
+            }
+            active = files;
+            activeHash = lines.get(0);
+            activeOverrides = lines.get(1).equals("overrides");
+        } catch (IOException | RuntimeException e) {
+            AEA.LOGGER.warn("[AEA] Could not restore data pack assets: {}", e.toString());
+        }
+    }
+
+    private static void remember(List<AssetNetwork.Listed> files) {
+        try {
+            Path state = stateFile();
+            if (files == null) {
+                Files.deleteIfExists(state);
+                return;
+            }
+            List<String> lines = new ArrayList<>(files.size() + 2);
+            lines.add(activeHash);
+            lines.add(activeOverrides ? "overrides" : "adds");
+            for (AssetNetwork.Listed f : files) lines.add(f.path() + "\t" + f.hash());
+            Files.createDirectories(state.getParent());
+            Files.write(state, lines);
+        } catch (IOException e) {
+            AEA.LOGGER.warn("[AEA] Could not remember data pack assets: {}", e.toString());
+        }
     }
 
     private static void addPack(AddPackFindersEvent event) {
@@ -107,7 +164,9 @@ public final class ClientPackAssets {
         INCOMING.clear();
         pending = List.of();
         if (manifest.files().isEmpty()) {
-            apply(null, "");
+            // This server sends no assets. A pack left over from another server stays loaded unless it replaces
+            // files of other packs, which would change how this server looks.
+            if (active != null && activeOverrides) apply(null, "", false, null);
             return;
         }
         long total = 0;
@@ -184,14 +243,28 @@ public final class ClientPackAssets {
             if (id != null) files.put(id, cacheFile(f.hash()));
         }
         String hash = pendingHash;
+        List<AssetNetwork.Listed> list = pending;
         pending = List.of();
-        apply(files, hash);
+        apply(files, hash, overridesOthers(files), list);
     }
 
-    private static void apply(Map<ResourceLocation, Path> files, String hash) {
+    /** Whether any of these files is already provided by another pack. */
+    private static boolean overridesOthers(Map<ResourceLocation, Path> files) {
+        var manager = Minecraft.getInstance().getResourceManager();
+        for (ResourceLocation id : files.keySet()) {
+            for (var resource : manager.getResourceStack(id)) {
+                if (!resource.sourcePackId().equals(LOCATION.id())) return true;
+            }
+        }
+        return false;
+    }
+
+    private static void apply(Map<ResourceLocation, Path> files, String hash, boolean overrides, List<AssetNetwork.Listed> list) {
         if (hash.equals(activeHash)) return;
         active = files;
         activeHash = hash;
+        activeOverrides = overrides;
+        remember(list);
         Minecraft.getInstance().reloadResourcePacks();
     }
 }

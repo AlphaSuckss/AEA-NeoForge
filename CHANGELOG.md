@@ -7,7 +7,7 @@ Every change to AEA for NeoForge 1.21.1, newest first.
 ### Added
 - `aea:hitbox_part`: a power that gives an entity an extra hit box. The box follows the entity's body, and a hit on it counts as a hit on the entity. With hit boxes shown (F3 + B) it is outlined in green.
 - Data pack textures: PNG files under `data/<namespace>/textures/` in a data pack are sent to players and registered under `<namespace>:textures/...`, so powers can use them without a resource pack. No resource reload is needed.
-- Data pack assets: the `assets/` folder of a data pack in the world's `datapacks` folder is sent to players and loaded on their game as a resource pack. This covers block and item textures, models, sounds, fonts, language files, animated textures, and the Blockbench models and animations of `apoli:custom_model_render`.
+- Data pack assets: the `assets/` folder of a data pack in the world's `datapacks` folder is sent to players and loaded on their game as a resource pack. This covers block and item textures, models, sounds, fonts, language files, animated textures, and the Blockbench models and animations of `apoli:custom_model_render`. The player's resources reload only when the files are new or have changed: the pack stays loaded after leaving and is loaded with the rest of the game at the next start.
 - Settings `data_pack_textures.enabled` and `data_pack_assets.enabled` in `config/aea-common.toml`, both on by default.
 - This changelog.
 
