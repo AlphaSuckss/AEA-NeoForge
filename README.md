@@ -27,15 +27,7 @@ The port's smoke tests live in `src/selftest/java` and are not in the release ja
 | `client/`, `mixin/client` | `sync:flip_model`, `sync:entity_texture_overlay`. |
 
 ## Documentation
-The docs site lives in `website/`: a static [SvelteKit](https://svelte.dev/) app whose pages are the Markdown files in `website/src/content/`. A push to `main` that touches `website/` rebuilds it and publishes it to GitHub Pages at https://alphasuckss.github.io/AEA-NeoForge/.
-
-```bash
-cd website
-npm install
-npm run dev
-```
-
-A new page only needs a Markdown file with `title`, `description` and `order` in its frontmatter. Power type pages also set `type_id`.
+The docs are at https://alphasuckss.github.io/AEA-Docs/. Their source is in the [AEA-Docs](https://github.com/AlphaSuckss/AEA-Docs) repository.
 
 ## Config
 `config/aea-common.toml` → `legacy_datapacks.enabled` (default true), `log_rewrites`.
