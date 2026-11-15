@@ -1,14 +1,16 @@
 package dev.alphasucks.aea.compat;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.Codec;
 import dev.alphasucks.aea.AEA;
+import dev.alphasucks.aea.compat.legacy.LegacySetNbt;
 import dev.overgrown.apoli.condition.EntityCondition;
 import dev.overgrown.apoli.condition.context.EntityCtx;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
@@ -32,10 +34,10 @@ public final class AEALoot {
     public static final Supplier<LootItemConditionType> POWER = APOLI.register("power",
         () -> new LootItemConditionType(codec("apoli:power", AEALoot.POWER)));
 
-    private static final DeferredRegister<net.minecraft.world.level.storage.loot.functions.LootItemFunctionType<?>> AEA_FUNCTIONS =
+    private static final DeferredRegister<LootItemFunctionType<?>> AEA_FUNCTIONS =
         DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, "aea");
-    public static final Supplier<net.minecraft.world.level.storage.loot.functions.LootItemFunctionType<dev.alphasucks.aea.compat.legacy.LegacySetNbt>> LEGACY_SET_NBT =
-        AEA_FUNCTIONS.register("legacy_set_nbt", () -> new net.minecraft.world.level.storage.loot.functions.LootItemFunctionType<>(dev.alphasucks.aea.compat.legacy.LegacySetNbt.CODEC));
+    public static final Supplier<LootItemFunctionType<LegacySetNbt>> LEGACY_SET_NBT =
+        AEA_FUNCTIONS.register("legacy_set_nbt", () -> new LootItemFunctionType<>(LegacySetNbt.CODEC));
 
     public static void register(IEventBus bus) {
         ORIGINS.register(bus);

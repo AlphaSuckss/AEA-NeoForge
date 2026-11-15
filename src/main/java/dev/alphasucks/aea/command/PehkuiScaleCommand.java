@@ -1,17 +1,15 @@
 package dev.alphasucks.aea.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.overgrown.apoli.scale.ScaleEasing;
 import dev.overgrown.apoli.scale.ScaleType;
 import dev.overgrown.apoli.scale.ScaleTypeCodec;
-import dev.overgrown.apoli.scale.ScaleTypes;
 import dev.overgrown.apoli.scale.Scales;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -105,7 +103,7 @@ public final class PehkuiScaleCommand {
                 .then(Commands.literal("reset").executes(c -> { EASINGS.remove(c.getSource().getEntityOrException().getUUID()); return 1; })))
             // Overgrown's scale state already persists; accept every Pehkui persist form as a no-op.
             .then(Commands.literal("persist").executes(c -> 1)
-                .then(Commands.argument("args", com.mojang.brigadier.arguments.StringArgumentType.greedyString()).executes(c -> 1))));
+                .then(Commands.argument("args", StringArgumentType.greedyString()).executes(c -> 1))));
     }
 
     enum Op { SET, ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER }
@@ -247,13 +245,5 @@ public final class PehkuiScaleCommand {
         if (m == null) return ScaleEasing.LINEAR;
         ScaleEasing v = m.get(id);
         return v == null ? ScaleEasing.LINEAR : v;
-    }
-
-    static ScaleType unusedTypes() {
-        return ScaleTypes.BASE;
-    }
-
-    @SuppressWarnings("unused")
-    private static void unused() throws CommandSyntaxException {
     }
 }

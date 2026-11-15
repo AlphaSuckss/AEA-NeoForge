@@ -2,8 +2,11 @@ package dev.alphasucks.aea.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.alphasucks.aea.AEA;
+import dev.alphasucks.aea.legacy.CommandUpgrader;
 import dev.alphasucks.aea.legacy.Diagnostics;
+import dev.alphasucks.aea.legacy.TextFixes;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -13,8 +16,12 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntSupplier;
 
+/** {@code /aea validate}, {@code /aea upgrade}, and AEA's {@code /scale} when Pehkui isn't installed. */
 public final class AEACommands {
+    private static final String SELFTEST_COMMANDS = "dev.alphasucks.aea.command.SelfTestCommands";
+
     @SubscribeEvent
     public void onRegister(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> d = event.getDispatcher();
@@ -25,34 +32,30 @@ public final class AEACommands {
         d.register(Commands.literal("aea").requires(s -> s.hasPermission(2))
             .then(Commands.literal("validate").executes(c -> validate(c.getSource()))
                 .then(Commands.literal("fields").executes(c -> guard(() -> FieldAudit.run(c.getSource())))))
-            .then(Commands.literal("upgrade").then(Commands.argument("command", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+            .then(Commands.literal("upgrade").then(Commands.argument("command", StringArgumentType.greedyString())
                 .executes(c -> {
-                    String in = com.mojang.brigadier.arguments.StringArgumentType.getString(c, "command");
-                    String out = dev.alphasucks.aea.legacy.CommandUpgrader.upgrade(dev.alphasucks.aea.legacy.TextFixes.all(in), 3465);
+                    String in = StringArgumentType.getString(c, "command");
+                    String out = CommandUpgrader.upgrade(TextFixes.all(in), 3465);
                     c.getSource().sendSuccess(() -> Component.literal(out), false);
                     AEA.LOGGER.info("[AEA] upgrade: {} => {}", in, out);
                     return 1;
                 })))
         );
-        // Destructive smoke test used while porting (summons a mob and grants it every power). Off unless -Daea.selftest=true.
-        if (Boolean.getBoolean("aea.selftest")) {
-            d.register(Commands.literal("aea").requires(s -> s.hasPermission(4))
-                .then(Commands.literal("selftest")
-                    .then(Commands.literal("grant").executes(c -> guard(() -> SelfTest.grant(c.getSource()))))
-                    .then(Commands.literal("functions").executes(c -> guard(() -> SelfTest.functions(c.getSource()))))
-                    .then(Commands.literal("player").executes(c -> guard(() -> SelfTest.player(c.getSource()))))
-                    .then(Commands.literal("items").executes(c -> guard(() -> SelfTest.legacyItems(c.getSource()))))
-                    .then(Commands.literal("audit").executes(c -> guard(() -> ApoliAudit.run(c.getSource()))))
-                    .then(Commands.literal("legacy").executes(c -> guard(() -> LegacyCommandTest.run(c.getSource()))))
-                    .then(Commands.literal("dump").then(Commands.argument("namespace", com.mojang.brigadier.arguments.StringArgumentType.word())
-                        .executes(c -> guard(() -> SelfTest.dump(c.getSource(), com.mojang.brigadier.arguments.StringArgumentType.getString(c, "namespace"))))))
-                    .then(Commands.literal("probe").then(Commands.argument("power", net.minecraft.commands.arguments.ResourceLocationArgument.id())
-                        .executes(c -> guard(() -> SelfTest.probe(c.getSource(), net.minecraft.commands.arguments.ResourceLocationArgument.getId(c, "power"))))))
-                    .then(Commands.literal("gui").executes(c -> guard(() -> dev.alphasucks.aea.gui.GuiSelfTest.schedule(c.getSource()))))));
+        // The port's smoke tests ship in a separate selftest jar; they are only wired up with -Daea.selftest=true.
+        if (Boolean.getBoolean("aea.selftest")) registerSelfTest(d);
+    }
+
+    private static void registerSelfTest(CommandDispatcher<CommandSourceStack> d) {
+        try {
+            Class.forName(SELFTEST_COMMANDS).getMethod("register", CommandDispatcher.class).invoke(null, d);
+        } catch (ClassNotFoundException e) {
+            AEA.LOGGER.warn("[AEA] -Daea.selftest=true is set, but this is the release jar: /aea selftest needs the selftest jar.");
+        } catch (ReflectiveOperationException e) {
+            AEA.LOGGER.error("[AEA] Couldn't register /aea selftest", e);
         }
     }
 
-    private static int guard(java.util.function.IntSupplier body) {
+    static int guard(IntSupplier body) {
         try {
             return body.getAsInt();
         } catch (Throwable t) {

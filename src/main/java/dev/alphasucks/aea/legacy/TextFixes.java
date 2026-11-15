@@ -1,6 +1,9 @@
 package dev.alphasucks.aea.legacy;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -13,6 +16,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,7 +44,7 @@ public final class TextFixes {
             Matcher m = COLOR.matcher(s);
             StringBuilder out = new StringBuilder();
             while (m.find()) {
-                String color = m.group(3).toLowerCase(java.util.Locale.ROOT);
+                String color = m.group(3).toLowerCase(Locale.ROOT);
                 String fixed = fixColor(color);
                 if (fixed != null && fixed.equals(m.group(3))) {
                     m.appendReplacement(out, Matcher.quoteReplacement(m.group()));
@@ -118,11 +122,11 @@ public final class TextFixes {
     /** Item components compound (NBT, from the DataFixer) → JSON that DataComponentPatch.CODEC accepts. */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static JsonElement componentsToJson(CompoundTag comps) {
-        com.google.gson.JsonObject out = new com.google.gson.JsonObject();
+        JsonObject out = new JsonObject();
         for (String key : comps.getAllKeys()) {
             Tag value = comps.get(key);
             if (key.startsWith("!")) {
-                out.add(key, new com.google.gson.JsonObject());
+                out.add(key, new JsonObject());
                 continue;
             }
             if (CUSTOM_DATA_LIKE.contains(key) && value instanceof CompoundTag ct) {
@@ -146,14 +150,14 @@ public final class TextFixes {
     }
 
     private static JsonElement heuristic(String key, Tag value) {
-        if (value instanceof ByteTag b && BOOLEAN_KEYS.contains(key)) return new com.google.gson.JsonPrimitive(b.getAsByte() != 0);
+        if (value instanceof ByteTag b && BOOLEAN_KEYS.contains(key)) return new JsonPrimitive(b.getAsByte() != 0);
         if (value instanceof CompoundTag c) {
-            com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+            JsonObject o = new JsonObject();
             for (String k : c.getAllKeys()) o.add(k, heuristic(k, c.get(k)));
             return o;
         }
         if (value instanceof ListTag l) {
-            com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+            JsonArray a = new JsonArray();
             for (Tag t : l) a.add(heuristic(key, t));
             return a;
         }

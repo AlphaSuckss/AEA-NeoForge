@@ -9,12 +9,13 @@ on top of **Overgrown's Apoli 1.124.0 + Origins 1.49.0 for NeoForge 1.21.1**.
 
 > The Gradle setup (ModDevGradle) hasn't been run yet: releases so far were compiled directly with `javac` against the NeoForge 21.1.265 jars. Report it if it doesn't build.
 
-`runServer` starts with `-Daea.selftest=true`, which adds the destructive smoke tests `/aea selftest grant|functions|player|gui|items|legacy|audit|probe <power>`.
+The port's smoke tests live in `src/selftest/java` and are not in the release jar. `gradlew selftestJar` (or `build.sh`) builds `aea-<version>-selftest.jar` with them; `runServer` uses them too. With `-Daea.selftest=true` that jar adds the destructive `/aea selftest grant|functions|player|gui|items|legacy|audit|probe <power>`.
 
 ## Layout
 | Package | What it does |
 |---|---|
 | `legacy/` | Pack layer. `LegacyResources` (+ `mixin/legacy`) serves `functions/`, `tags/items/`, `loot_tables/`… under the 1.21 names and rewrites file contents of packs whose `pack_format` < 48. `CommandUpgrader` (commands), `ApoliJsonUpgrader` (powers/origins/layers), `VanillaJsonUpgrader` (recipes, advancements, loot, predicates, item modifiers), `NbtUpgrader` (Mojang DataFixer for items/entities/particles), `TextFixes`/`TextComponents`, `WorldgenUpgrader`, `LoadConditions` (`fabric:load_conditions`), `ConventionalTags` (Fabric `c:` v1 → v2), `ApoliCommandUpgrader` (`/power`). |
+| `compat/` | `AEATypes` registers the sync, legacy and addon types through `SyncTypes` / `LegacyTypes` / `AddonTypes` (`gui/GuiTypes` does the same for the GUI). Each type is one file, laid out like Overgrown's Apoli: `power/XxxPower`, `action/<context>/XxxAction`, `condition/<context>/XxxCondition`. |
 | `compat/sync/` | Sync 1.11.8 forward port. `sync:` falls back to `apoli:` (Overgrown's improved versions); types whose fields differ or that Overgrown lacks are implemented here. |
 | `compat/legacy/` | Apoli 2.9 / Origins 1.10 types Overgrown dropped (`set_resource`, `side`, `category`, `material`, `fluid`, `launch`, `modify_lava_speed`, `modify_insomnia_ticks`, `modify_fluid_render`) and the legacy item `nbt` condition. |
 | `compat/addon/` | Types used by community packs: `aea:velocity_immunity` (AEA 1.5.4 semantics), `moborigins:walk_on_powder_snow`, `apugli:mobs_ignore`, `apoli:damage_immunity`, `apoli:modify_drops`, damage conditions `damage_type` / `attacker_action` / `command`. |

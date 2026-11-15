@@ -7,6 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
@@ -28,12 +29,12 @@ public final class GuiNetwork {
     }
 
     public static void sendState(ServerPlayer player, int syncId, State state) {
-        if (state.isEmpty() || player.connection == null || player instanceof net.neoforged.neoforge.common.util.FakePlayer) return;
+        if (state.isEmpty() || player.connection == null || player instanceof FakePlayer) return;
         if (!player.connection.hasChannel(StatePayload.TYPE)) return;
         PacketDistributor.sendToPlayer(player, new StatePayload(syncId, state));
     }
 
-    // ------------------------------------------------------------------ payloads
+    // Payloads
 
     public record StatePayload(int syncId, State state) implements CustomPacketPayload {
         public static final Type<StatePayload> TYPE = new Type<>(AEA.id("gui_state"));
@@ -62,7 +63,7 @@ public final class GuiNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
-    // ------------------------------------------------------------------ state
+    // State
 
     public static final class Builder {
         BitSet visible;

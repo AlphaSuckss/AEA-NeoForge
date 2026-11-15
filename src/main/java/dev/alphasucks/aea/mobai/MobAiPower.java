@@ -22,6 +22,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
@@ -289,7 +290,7 @@ public final class MobAiPower extends PowerType<MobAiPower.Config> {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private static void stopBrain(Mob mob, ServerLevel level) {
-            ((net.minecraft.world.entity.ai.Brain) mob.getBrain()).stopAll(level, mob);
+            ((Brain) mob.getBrain()).stopAll(level, mob);
         }
 
         private void removeVanilla(MobAiState state) {

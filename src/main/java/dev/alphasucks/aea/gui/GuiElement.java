@@ -23,6 +23,7 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,7 +61,7 @@ public interface GuiElement {
         return c == null ? DataResult.error(() -> "Unknown aea:gui element type '" + name + "'") : DataResult.success(c);
     }
 
-    // ------------------------------------------------------------------ shared fields
+    // Shared fields
 
     enum Anchor implements StringRepresentable {
         CENTER("center", 0.5F, 0.5F), TOP_LEFT("top_left", 0F, 0F), TOP("top", 0.5F, 0F), TOP_RIGHT("top_right", 1F, 0F),
@@ -129,7 +130,7 @@ public interface GuiElement {
         ).apply(i, Common::new));
     }
 
-    // ------------------------------------------------------------------ aea:image
+    // aea:image
 
     record Image(Common common, ResourceLocation texture, Optional<Integer> textureWidth, Optional<Integer> textureHeight,
                  int u, int v, Optional<Expression> progress, ProgressDirection direction, boolean invert) implements GuiElement {
@@ -156,7 +157,7 @@ public interface GuiElement {
         public int texHeight() { return textureHeight.orElse(height()); }
     }
 
-    // ------------------------------------------------------------------ aea:text
+    // aea:text
 
     record Text(Common common, Component text, int color, boolean shadow, boolean centered) implements GuiElement {
         static final MapCodec<Text> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -170,7 +171,7 @@ public interface GuiElement {
         @Override public String typeName() { return "text"; }
     }
 
-    // ------------------------------------------------------------------ aea:button
+    // aea:button
 
     record Button(Common common, Optional<ResourceLocation> texture, Optional<ResourceLocation> hoverTexture,
                   Optional<ResourceLocation> pressedTexture, Optional<Component> text, int textColor,
@@ -197,7 +198,7 @@ public interface GuiElement {
         public int height() { return common.height().orElse(20); }
     }
 
-    // ------------------------------------------------------------------ aea:slider
+    // aea:slider
 
     record Slider(Common common, String id, double min, double max, Optional<Double> startValue, double step,
                   Optional<ResourceLocation> backgroundTexture, Optional<ResourceLocation> handleTexture, int handleWidth,
@@ -248,7 +249,7 @@ public interface GuiElement {
         }
     }
 
-    // ------------------------------------------------------------------ aea:entity
+    // aea:entity
 
     record Equipment(EquipmentSlot slot, ItemStack item) {
         static final Codec<Equipment> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -306,7 +307,7 @@ public interface GuiElement {
         public int height() { return common.height().orElse(70); }
     }
 
-    // ------------------------------------------------------------------ aea:slot / aea:slot_grid
+    // aea:slot / aea:slot_grid
 
     record Slot(Common common, SlotType slotType, Optional<String> id, Optional<ItemCondition> itemCondition,
                 Optional<Integer> maxStack, Optional<ItemStack> item, boolean background) implements GuiElement {
@@ -352,7 +353,7 @@ public interface GuiElement {
         public boolean[][] cells() {
             boolean[][] cells = new boolean[rows][columns];
             if (visible.isEmpty()) {
-                for (boolean[] row : cells) java.util.Arrays.fill(row, true);
+                for (boolean[] row : cells) Arrays.fill(row, true);
                 return cells;
             }
             for (String cell : visible) {

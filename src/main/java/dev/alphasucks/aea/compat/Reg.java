@@ -77,15 +77,4 @@ public final class Reg {
             @Override public boolean test(Object config, CTX ctx) { return raw.test(config, ctx); }
         });
     }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <CTX> void actionRenamed(TypedActionRegistry<CTX> reg, String id, String target, Map<String, String> renames) {
-        ActionType<CTX, ?> t = reg.get(id(target));
-        if (t == null) { AEA.LOGGER.warn("[AEA] Missing action {} for {}", target, id); return; }
-        ActionType raw = t;
-        action(reg, id, new ActionType<CTX, Object>() {
-            @Override public MapCodec<Object> codec() { return AliasingMapCodec.wrap((MapCodec) raw.codec(), renames); }
-            @Override public void run(Object config, CTX ctx) { raw.run(config, ctx); }
-        });
-    }
 }

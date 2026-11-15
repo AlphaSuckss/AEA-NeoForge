@@ -1,6 +1,7 @@
 package dev.alphasucks.aea.compat.legacy.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.alphasucks.aea.compat.legacy.LegacyOriginsMarkers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.ConduitBlockEntity;
@@ -11,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ConduitBlockEntity.class)
 public abstract class ConduitOnLandMixin {
     @ModifyExpressionValue(method = "applyEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;isInWaterOrRain()Z"))
-    private static boolean aea$conduitOnLand(boolean original, @com.llamalad7.mixinextras.sugar.Local Player player) {
+    private static boolean aea$conduitOnLand(boolean original, @Local Player player) {
         return original || LegacyOriginsMarkers.conduitPowerOnLand(player);
     }
 }

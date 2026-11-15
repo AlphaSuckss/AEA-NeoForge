@@ -1,6 +1,8 @@
 package dev.alphasucks.aea.legacy;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import dev.alphasucks.aea.AEA;
@@ -10,6 +12,7 @@ import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.neoforged.fml.ModList;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -100,7 +103,7 @@ public final class LegacyResources {
         return GUARD.get()[0] > 0;
     }
 
-    // ---------------------------------------------------------------- entry points used by the mixins
+    // Entry points used by the mixins
 
     public static IoSupplier<InputStream> getResource(PackResources pack, PackType type, ResourceLocation loc) {
         if (type != PackType.SERVER_DATA || guarded()) return PASS;
@@ -151,7 +154,7 @@ public final class LegacyResources {
 
     private static void emit(Info info, ResourceLocation id, IoSupplier<InputStream> sup, PackResources.ResourceOutput output) {
         if (!conditionsPass(info, id, sup)) {
-            if (dev.alphasucks.aea.AEAConfig.logRewrites()) AEA.LOGGER.info("[AEA] {} skipped: its load conditions are not met", id);
+            if (AEAConfig.logRewrites()) AEA.LOGGER.info("[AEA] {} skipped: its load conditions are not met", id);
             return;
         }
         ResourceLocation out = renameConventionalTag(id);
@@ -198,7 +201,7 @@ public final class LegacyResources {
         };
     }
 
-    // ---------------------------------------------------------------- content upgrades
+    // Content upgrades
 
     private static String category(String path) {
         int slash = path.indexOf('/');
@@ -240,13 +243,13 @@ public final class LegacyResources {
                 if (info.upgradeContent()) text = TextFixes.all(text);
                 if (function) {
                     out = info.upgradeContent() ? CommandUpgrader.upgradeFunction(text, info.dataVersion()) : text;
-                    if (dev.alphasucks.aea.AEAConfig.logRewrites() && !out.equals(text)) AEA.LOGGER.info("[AEA] Rewrote function {}:\n{}", id, out);
+                    if (AEAConfig.logRewrites() && !out.equals(text)) AEA.LOGGER.info("[AEA] Rewrote function {}:\n{}", id, out);
                 } else if (tags) {
                     JsonReader reader = new JsonReader(new StringReader(text));
                     reader.setLenient(true);
                     JsonElement el = JsonParser.parseReader(reader);
                     if (el.isJsonObject()) LoadConditions.apply(el.getAsJsonObject(), false);
-                    if (el.isJsonObject() && !el.getAsJsonObject().has("values")) el.getAsJsonObject().add("values", new com.google.gson.JsonArray());
+                    if (el.isJsonObject() && !el.getAsJsonObject().has("values")) el.getAsJsonObject().add("values", new JsonArray());
                     if (el.isJsonObject() && !id.getPath().startsWith("tags/function")) tagEntries(el.getAsJsonObject());
                     out = el.toString();
                 } else {
@@ -286,14 +289,14 @@ public final class LegacyResources {
      *   <li>entries from mods that aren't installed become optional, so one missing mod item doesn't do the same.</li>
      * </ul>
      */
-    private static void tagEntries(com.google.gson.JsonObject tag) {
+    private static void tagEntries(JsonObject tag) {
         if (!tag.has("values") || !tag.get("values").isJsonArray()) return;
-        com.google.gson.JsonArray values = tag.getAsJsonArray("values");
+        JsonArray values = tag.getAsJsonArray("values");
         for (int i = 0; i < values.size(); i++) {
             JsonElement v = values.get(i);
             String entry;
             boolean required = true;
-            com.google.gson.JsonObject obj = null;
+            JsonObject obj = null;
             if (v.isJsonPrimitive()) {
                 entry = v.getAsString();
             } else if (v.isJsonObject() && v.getAsJsonObject().has("id")) {
@@ -304,7 +307,7 @@ public final class LegacyResources {
             String mapped = ConventionalTags.mapRef(entry);
             boolean optional = !required || mapped.startsWith("#") || ConventionalTags.isConventional(mapped) || !modPresent(mapped);
             if (!optional && mapped.equals(entry)) continue;
-            com.google.gson.JsonObject opt = new com.google.gson.JsonObject();
+            JsonObject opt = new JsonObject();
             opt.addProperty("id", mapped);
             opt.addProperty("required", !optional);
             values.set(i, opt);
@@ -317,6 +320,6 @@ public final class LegacyResources {
         if (c <= 0) return true;
         String ns = rl.substring(0, c);
         if (ns.equals("minecraft") || ns.equals("neoforge")) return true;
-        return net.neoforged.fml.ModList.get() == null || net.neoforged.fml.ModList.get().isLoaded(ns);
+        return ModList.get() == null || ModList.get().isLoaded(ns);
     }
 }

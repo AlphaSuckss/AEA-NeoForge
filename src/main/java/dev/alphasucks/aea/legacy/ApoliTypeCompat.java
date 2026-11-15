@@ -32,7 +32,7 @@ final class ApoliTypeCompat {
         return ns.equals("apoli") || ns.equals("origins");
     }
 
-    // ---------------------------------------------------------------------------------------------- per object
+    // Per object
 
     static void fix(JsonObject o, String type, int dv) {
         if (!apoliNs(o)) return;
@@ -97,7 +97,7 @@ final class ApoliTypeCompat {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------- whole files
+    // Whole files
 
     /** Fixes that need the file's root: power names, sub-power expansion, origin names. */
     static JsonElement root(JsonElement root) {
@@ -308,7 +308,7 @@ final class ApoliTypeCompat {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------- helpers
+    // Helpers
 
     private static void copy(JsonObject from, JsonObject to, String... keys) {
         for (String k : keys) if (from.has(k)) to.add(k, from.get(k));

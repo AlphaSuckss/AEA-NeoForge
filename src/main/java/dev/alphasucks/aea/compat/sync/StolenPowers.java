@@ -2,9 +2,9 @@ package dev.alphasucks.aea.compat.sync;
 
 import dev.overgrown.apoli.power.ApoliPowers;
 import dev.overgrown.apoli.power.PowerContainer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.ChatFormatting;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -121,11 +121,5 @@ public final class StolenPowers {
                 .append(Component.literal(steal ? "STEAL" : "GIVE").withStyle(Style.EMPTY.withBold(true)
                     .withColor(steal ? ChatFormatting.RED : ChatFormatting.GREEN))), true);
         }
-    }
-
-    public static void forget(UUID uuid) {
-        PACKAGES.remove(uuid);
-        SELECTED.remove(uuid);
-        STEALING.remove(uuid);
     }
 }

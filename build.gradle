@@ -9,6 +9,14 @@ base { archivesName = 'aea' }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+// The port's smoke tests (/aea selftest). Not part of the release jar; see selftestJar and the server run.
+sourceSets {
+    selftest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
 neoForge {
     version = project.neo_version
     parchment {
@@ -20,12 +28,16 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
-            // Enables /aea selftest (grants every power to a test mob). Never ship a server with this on.
+            // Dev server with the self-tests on: /aea selftest grants every power to a test mob. Never ship a server with this on.
+            sourceSet = sourceSets.selftest
             systemProperty 'aea.selftest', 'true'
         }
     }
     mods {
-        aea { sourceSet(sourceSets.main) }
+        aea {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.selftest)
+        }
     }
 }
 
@@ -35,3 +47,11 @@ dependencies {
 }
 
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+// aea-<version>-selftest.jar: the release jar plus the self-tests.
+tasks.register('selftestJar', Jar) {
+    archiveClassifier = 'selftest'
+    manifest.from(tasks.jar.manifest)
+    from sourceSets.main.output
+    from sourceSets.selftest.output
+}

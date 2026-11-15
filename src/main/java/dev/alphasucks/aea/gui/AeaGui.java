@@ -1,9 +1,7 @@
 package dev.alphasucks.aea.gui;
 
 import dev.alphasucks.aea.AEA;
-import dev.alphasucks.aea.compat.Reg;
-import dev.alphasucks.aea.gui.action.GuiActions;
-import dev.alphasucks.aea.gui.condition.GuiConditions;
+import dev.alphasucks.aea.gui.client.AeaGuiClient;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -36,8 +34,6 @@ import java.util.List;
 public final class AeaGui {
     private AeaGui() {}
 
-    public static final ResourceLocation POWER_TYPE_ID = AEA.id("gui");
-
     private static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, AEA.MOD_ID);
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, AEA.MOD_ID);
 
@@ -55,16 +51,9 @@ public final class AeaGui {
         MENUS.register(modBus);
         ATTACHMENTS.register(modBus);
         modBus.addListener(AeaGui::registerPayloads);
-        modBus.addListener(FMLCommonSetupEvent.class, e -> e.enqueueWork(AeaGui::registerTypes));
+        modBus.addListener(FMLCommonSetupEvent.class, e -> e.enqueueWork(GuiTypes::register));
         NeoForge.EVENT_BUS.addListener(AeaGui::tickServer);
         NeoForge.EVENT_BUS.addListener(AeaGui::onLogout);
-    }
-
-    /** Power, action and condition types; called once during common setup. */
-    public static void registerTypes() {
-        Reg.power(POWER_TYPE_ID.toString(), new GuiPowerType());
-        GuiActions.register();
-        GuiConditions.register();
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
@@ -83,7 +72,7 @@ public final class AeaGui {
             session.moveSlider(p.element(), p.value(), p.release());
         });
         registrar.playToClient(GuiNetwork.StatePayload.TYPE, GuiNetwork.StatePayload.CODEC, (p, ctx) -> {
-            if (FMLEnvironment.dist.isClient()) dev.alphasucks.aea.gui.client.AeaGuiClient.applyState(p);
+            if (FMLEnvironment.dist.isClient()) AeaGuiClient.applyState(p);
         });
     }
 

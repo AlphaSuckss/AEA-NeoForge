@@ -14,6 +14,7 @@ import dev.overgrown.apoli.codec.IdCodecs;
 import dev.overgrown.apoli.data.Nbt;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -111,7 +112,7 @@ public final class GuiCodecs {
     }
 
     @SuppressWarnings("unchecked")
-    private static <V> void setUnchecked(DataComponentPatch.Builder b, net.minecraft.core.component.DataComponentType<V> type, Object value) {
+    private static <V> void setUnchecked(DataComponentPatch.Builder b, DataComponentType<V> type, Object value) {
         b.set(type, (V) value);
     }
 

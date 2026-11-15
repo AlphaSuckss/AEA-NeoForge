@@ -2,7 +2,9 @@ package dev.alphasucks.aea.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.alphasucks.aea.compat.sync.SyncPowers;
+import dev.alphasucks.aea.compat.sync.power.EntityTextureOverlayPower;
+import dev.alphasucks.aea.compat.sync.power.FlipModelPower;
+import dev.alphasucks.aea.gui.client.AeaGuiClient;
 import dev.overgrown.apoli.client.ClientResolvedPowers;
 import dev.overgrown.apoli.power.PowerContainer;
 import dev.overgrown.apoli.power.PowerLookup;
@@ -35,7 +37,7 @@ public final class AEAClient {
 
     public static void init(IEventBus modBus) {
         modBus.addListener(AEAClient::addLayers);
-        dev.alphasucks.aea.gui.client.AeaGuiClient.init(modBus);
+        AeaGuiClient.init(modBus);
         NeoForge.EVENT_BUS.addListener(AEAClient::cameraAngles);
         NeoForge.EVENT_BUS.addListener(AEAClient::renderArm);
     }
@@ -45,11 +47,11 @@ public final class AEAClient {
     }
 
     public static boolean flipped(Entity entity) {
-        return !active(entity, SyncPowers.FLIP_MODEL, SyncPowers.FlipCfg.class).isEmpty();
+        return !active(entity, FlipModelPower.ID, FlipModelPower.Config.class).isEmpty();
     }
 
-    public static Optional<SyncPowers.OverlayCfg> overlay(Entity entity) {
-        List<SyncPowers.OverlayCfg> l = active(entity, SyncPowers.TEXTURE_OVERLAY, SyncPowers.OverlayCfg.class);
+    public static Optional<EntityTextureOverlayPower.Config> overlay(Entity entity) {
+        List<EntityTextureOverlayPower.Config> l = active(entity, EntityTextureOverlayPower.ID, EntityTextureOverlayPower.Config.class);
         return l.isEmpty() ? Optional.empty() : Optional.of(l.get(0));
     }
 
@@ -58,7 +60,7 @@ public final class AEAClient {
         if (e == null) return;
         String name = e.getName().getString();
         if (name.equals("Dinnerbone") || name.equals("Grumm")) return;
-        for (SyncPowers.FlipCfg c : active(e, SyncPowers.FLIP_MODEL, SyncPowers.FlipCfg.class)) {
+        for (FlipModelPower.Config c : active(e, FlipModelPower.ID, FlipModelPower.Config.class)) {
             if (c.flipView()) {
                 event.setRoll(event.getRoll() + 180f);
                 return;
@@ -75,9 +77,9 @@ public final class AEAClient {
 
     private static void renderArm(RenderArmEvent event) {
         AbstractClientPlayer player = event.getPlayer();
-        Optional<SyncPowers.OverlayCfg> o = overlay(player);
+        Optional<EntityTextureOverlayPower.Config> o = overlay(player);
         if (o.isEmpty() || !o.get().firstPerson()) return;
-        SyncPowers.OverlayCfg c = o.get();
+        EntityTextureOverlayPower.Config c = o.get();
         boolean slim = player.getSkin().model() == PlayerSkin.Model.SLIM;
         Optional<ResourceLocation> tex = c.texture(slim);
         if (tex.isEmpty()) return;
@@ -100,9 +102,9 @@ public final class AEAClient {
         @Override
         public void render(PoseStack pose, MultiBufferSource buffers, int light, AbstractClientPlayer player,
                            float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
-            Optional<SyncPowers.OverlayCfg> o = overlay(player);
+            Optional<EntityTextureOverlayPower.Config> o = overlay(player);
             if (o.isEmpty() || !o.get().asOverlay()) return;
-            SyncPowers.OverlayCfg c = o.get();
+            EntityTextureOverlayPower.Config c = o.get();
             Minecraft mc = Minecraft.getInstance();
             boolean firstPerson = mc.player == player && mc.options.getCameraType().isFirstPerson();
             if (firstPerson && !c.firstPerson()) return;

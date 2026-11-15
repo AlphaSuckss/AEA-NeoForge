@@ -11,8 +11,9 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.util.datafix.fixes.References;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -259,7 +260,7 @@ public final class NbtUpgrader {
                     CompoundTag m = (CompoundTag) mt;
                     CompoundTag nm = new CompoundTag();
                     String n = m.contains("Name") ? m.getString("Name") : "legacy";
-                    nm.putString("id", "aea:" + n.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_./-]", "_"));
+                    nm.putString("id", "aea:" + n.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_./-]", "_"));
                     if (m.contains("Amount")) nm.putDouble("amount", m.getDouble("Amount"));
                     int op = m.getInt("Operation");
                     nm.putString("operation", op == 0 ? "add_value" : op == 1 ? "add_multiplied_base" : "add_multiplied_total");
@@ -326,7 +327,7 @@ public final class NbtUpgrader {
 
     /** Converts a components compound to the [k=v,...] item-argument syntax. */
     /** Components an item predicate can match exactly without over-constraining a legacy partial NBT match. */
-    private static final java.util.Set<String> EXACT_PREDICATE = java.util.Set.of("minecraft:custom_model_data",
+    private static final Set<String> EXACT_PREDICATE = Set.of("minecraft:custom_model_data",
         "minecraft:custom_name", "minecraft:damage", "minecraft:unbreakable", "minecraft:dyed_color", "minecraft:potion_contents");
 
     public static String componentsToArgument(CompoundTag components, boolean predicate) {

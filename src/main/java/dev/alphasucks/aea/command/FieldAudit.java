@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.MapCodec;
 import dev.alphasucks.aea.AEA;
+import dev.alphasucks.aea.gui.power.GuiPower;
 import dev.alphasucks.aea.legacy.Diagnostics;
 import dev.overgrown.apoli.action.ActionType;
 import dev.overgrown.apoli.action.ActionTypes;
@@ -19,12 +20,14 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 /** Reports fields in legacy power JSON that no codec for that type reads (they would be silently ignored). */
 final class FieldAudit {
@@ -82,7 +85,7 @@ final class FieldAudit {
                 }
             }
         }
-        boolean guiPower = id != null && PowerTypeRegistry.resolveId(id).equals(dev.alphasucks.aea.gui.AeaGui.POWER_TYPE_ID);
+        boolean guiPower = id != null && PowerTypeRegistry.resolveId(id).equals(GuiPower.ID);
         for (Map.Entry<String, JsonElement> c : o.entrySet()) {
             if (c.getKey().equals("badges")) continue;
             // aea:gui elements carry their own "type" (aea:text, aea:slot, ...): audit what is inside them, not the element itself.
@@ -112,14 +115,14 @@ final class FieldAudit {
     private static void aliasKeys(Object codec, Set<String> out, int depth) {
         if (codec == null || depth > 4) return;
         for (Class<?> c = codec.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-            for (java.lang.reflect.Field f : c.getDeclaredFields()) {
-                if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
+            for (Field f : c.getDeclaredFields()) {
+                if (Modifier.isStatic(f.getModifiers())) continue;
                 try {
                     f.setAccessible(true);
                     Object v = f.get(codec);
-                    if (v instanceof Map<?, ?> m && f.getName().toLowerCase(java.util.Locale.ROOT).contains("old")) {
+                    if (v instanceof Map<?, ?> m && f.getName().toLowerCase(Locale.ROOT).contains("old")) {
                         for (Object k : m.keySet()) if (k instanceof String s) out.add(s);
-                    } else if (v instanceof Map<?, ?> m && f.getName().toLowerCase(java.util.Locale.ROOT).contains("default")) {
+                    } else if (v instanceof Map<?, ?> m && f.getName().toLowerCase(Locale.ROOT).contains("default")) {
                         for (Object k : m.keySet()) if (k instanceof String s) out.add(s);
                     } else if (v instanceof MapCodec<?> inner && inner != codec) {
                         try {
