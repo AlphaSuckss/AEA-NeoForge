@@ -3,6 +3,8 @@ package dev.alphasucks.aea;
 import com.mojang.logging.LogUtils;
 import dev.alphasucks.aea.assets.PackAssets;
 import dev.alphasucks.aea.client.AEAClient;
+import dev.alphasucks.aea.compat.addon.PowerTags;
+import dev.alphasucks.aea.gamerule.DataGameRules;
 import dev.alphasucks.aea.command.AEACommands;
 import dev.alphasucks.aea.compat.AEAHooks;
 import dev.alphasucks.aea.compat.AEALoot;
@@ -69,6 +71,8 @@ public final class AEA {
         HitboxParts.register(modBus);
         PackTextures.register(modBus);
         PackAssets.register(modBus);
+        PowerTags.register(modBus);
+        DataGameRules.register(modBus);
         if (FMLEnvironment.dist.isClient()) {
             AEAClient.init(modBus);
         }
