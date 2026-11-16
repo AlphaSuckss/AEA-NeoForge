@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.sync.action.bientity;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -37,8 +38,8 @@ public final class TransferAction implements ActionType<BiEntityCtx, TransferAct
             IdCodecs.ID.optionalFieldOf("source").forGetter(Cfg::source),
             IdCodecs.ID.optionalFieldOf("transfer_source", StolenPowers.DEFAULT_SOURCE).forGetter(Cfg::transferSource),
             Codec.BOOL.optionalFieldOf("strip_from_donor", true).forGetter(Cfg::strip),
-            EntityAction.CODEC.optionalFieldOf("actor_action").forGetter(Cfg::actorAction),
-            EntityAction.CODEC.optionalFieldOf("target_action").forGetter(Cfg::targetAction)
+            LoggedOptionalField.of("actor_action", EntityAction.CODEC).forGetter(Cfg::actorAction),
+            LoggedOptionalField.of("target_action", EntityAction.CODEC).forGetter(Cfg::targetAction)
         ).apply(i, Cfg::new));
     }
 

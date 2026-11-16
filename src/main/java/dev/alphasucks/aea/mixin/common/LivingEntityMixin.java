@@ -1,5 +1,7 @@
 package dev.alphasucks.aea.mixin.common;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.alphasucks.aea.compat.legacy.power.ModifierPower;
 import dev.alphasucks.aea.compat.sync.power.MobsIgnorePower;
 import dev.overgrown.apoli.data.AttributeModifier;
@@ -8,18 +10,16 @@ import dev.overgrown.apoli.power.PowerLookup;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
-    @Inject(method = "canAttack(Lnet/minecraft/world/entity/LivingEntity;)Z", at = @At("HEAD"), cancellable = true)
-    private void aea$mobsIgnore(LivingEntity target, CallbackInfoReturnable<Boolean> cir) {
-        if (MobsIgnorePower.shouldIgnore((LivingEntity) (Object) this, target)) cir.setReturnValue(false);
+    @ModifyReturnValue(method = "canAttack(Lnet/minecraft/world/entity/LivingEntity;)Z", at = @At("RETURN"))
+    private boolean aea$mobsIgnore(boolean original, @Local(argsOnly = true) LivingEntity target) {
+        return original && !MobsIgnorePower.shouldIgnore((LivingEntity) (Object) this, target);
     }
 
     @ModifyArg(method = "travel", at = @At(value = "INVOKE",

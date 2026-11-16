@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.addon.power;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.overgrown.apoli.action.ItemAction;
@@ -21,8 +22,8 @@ public final class ModifyDropsPower extends PowerType<ModifyDropsPower.Config> {
     @Override
     public MapCodec<Config> configCodec() {
         return RecordCodecBuilder.mapCodec(i -> i.group(
-            ItemAction.CODEC.optionalFieldOf("item_action").forGetter(Config::itemAction),
-            BlockCondition.CODEC.optionalFieldOf("block_condition").forGetter(Config::blockCondition)
+            LoggedOptionalField.of("item_action", ItemAction.CODEC).forGetter(Config::itemAction),
+            LoggedOptionalField.strict("block_condition", BlockCondition.CODEC).forGetter(Config::blockCondition)
         ).apply(i, Config::new));
     }
 }

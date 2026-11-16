@@ -59,9 +59,9 @@ public final class MobAiPower extends PowerType<MobAiPower.Config> {
     public record Config(List<String> remove, List<GoalSpecs.Spec> goals, List<GoalSpecs.Spec> targets,
                          Optional<BiEntityCondition> neverTarget, Optional<Double> attackDamage, int reapplyInterval) {
         boolean removesBrain() {
-            for (String s : remove) {
-                String l = s.toLowerCase(Locale.ROOT);
-                if (l.equals("brain") || l.equals("all")) return true;
+            for (int i = 0; i < remove.size(); i++) {
+                String s = remove.get(i);
+                if (s.equalsIgnoreCase("brain") || s.equalsIgnoreCase("all")) return true;
             }
             return false;
         }
@@ -92,7 +92,6 @@ public final class MobAiPower extends PowerType<MobAiPower.Config> {
     @Override
     public void tick(ResourceLocation powerId, Config cfg, PowerContainer holder) {
         if (!(holder.rawOwner() instanceof Mob mob) || !(mob.level() instanceof ServerLevel) || holder.isSuppressed(powerId)) return;
-        if (!conditionHolds(powerId, mob)) return;
         MobAiState state = state(mob);
         Applied applied = state.applied.get(powerId);
         if (applied != null && applied.cfg != cfg) {
@@ -110,11 +109,27 @@ public final class MobAiPower extends PowerType<MobAiPower.Config> {
         applied.tick(mob);
     }
 
-    /** Overgrown ticks every held power; AEA 1.5.4 (on Apoli 2.9) only ticked powers whose "condition" held. */
+    /**
+     * Overgrown ticks every held power; AEA 1.5.4 (on Apoli 2.9) only ticked powers whose "condition" held. The check
+     * runs on the context the container already built; {@link #tickStored} undoes a power that stopped ticking.
+     */
+    @Override
+    public boolean isActive(ResourceLocation powerId, Config cfg, EntityCtx ctx) {
+        Power loaded = ApoliPowers.get(powerId);
+        if (loaded == null || loaded.condition().isEmpty()) return true;
+        try {
+            return loaded.condition().get().test(ctx);
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    /** The power's condition, for types that only check it on an interval (see {@link MobPathingPower}). */
     static boolean conditionHolds(ResourceLocation powerId, Mob mob) {
         try {
             Power loaded = ApoliPowers.get(powerId);
-            return loaded == null || loaded.condition().isEmpty() || loaded.condition().get().test(EntityCtx.of(mob, mob.level()));
+            if (loaded == null || loaded.condition().isEmpty()) return true;
+            return loaded.condition().get().test(EntityCtx.of(mob, mob.level()));
         } catch (RuntimeException e) {
             return false;
         }
@@ -140,7 +155,7 @@ public final class MobAiPower extends PowerType<MobAiPower.Config> {
 
     @Override
     public void onRemoved(ResourceLocation powerId, Config cfg, PowerContainer holder, ResourceLocation source) {
-        if (!(holder.rawOwner() instanceof Mob mob) || mob.level().isClientSide()) return;
+        if (holder.hasPower(powerId) || !(holder.rawOwner() instanceof Mob mob) || mob.level().isClientSide()) return;
         MobAiState state = state(mob);
         Applied applied = state.applied.get(powerId);
         if (applied == null) return;

@@ -54,7 +54,7 @@ config="aea-apoli.mixins.json"
 
 [[dependencies.aea]]
     modId="origins"
-    type="required"
+    type="optional"
     versionRange="[1.49.0,)"
     ordering="AFTER"
     side="BOTH"

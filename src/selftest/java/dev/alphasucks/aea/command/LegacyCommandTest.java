@@ -106,9 +106,12 @@ final class LegacyCommandTest {
             PowerContainer zc = PowerContainerAttachment.getOrCreate(dz);
             zc.addPower(dot, s);
             float before = dz.getHealth();
+            // The power counts game ticks (aux stamps), so each pass advances the game time by one.
+            net.minecraft.world.level.storage.ServerLevelData data = (net.minecraft.world.level.storage.ServerLevelData) level.getLevelData();
             for (int i = 0; i < 25; i++) {
                 dz.invulnerableTime = 0;
                 if (zc instanceof PowerContainerImpl impl) impl.tickActive();
+                data.setGameTime(level.getGameTime() + 1);
             }
             check("legacy damage_over_time deals damage after onset (" + before + " -> " + dz.getHealth() + ")", dz.getHealth() < before);
             dz.discard();

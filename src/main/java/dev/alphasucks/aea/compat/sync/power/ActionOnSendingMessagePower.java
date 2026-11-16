@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.sync.power;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -42,8 +43,8 @@ public final class ActionOnSendingMessagePower extends PowerType<ActionOnSending
 
     private static final Codec<Filter> FILTER_CODEC = RecordCodecBuilder.create(i -> i.group(
         Codec.STRING.fieldOf("filter").forGetter(Filter::filter),
-        EntityAction.CODEC.optionalFieldOf("before_action").forGetter(Filter::before),
-        EntityAction.CODEC.optionalFieldOf("after_action").forGetter(Filter::after),
+        LoggedOptionalField.of("before_action", EntityAction.CODEC).forGetter(Filter::before),
+        LoggedOptionalField.of("after_action", EntityAction.CODEC).forGetter(Filter::after),
         Codec.STRING.optionalFieldOf("replacement").forGetter(Filter::replacement),
         Codec.BOOL.optionalFieldOf("prevent", false).forGetter(Filter::prevent)
     ).apply(i, Filter::new));

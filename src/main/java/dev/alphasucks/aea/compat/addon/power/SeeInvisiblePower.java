@@ -4,19 +4,26 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.alphasucks.aea.compat.addon.PowerTags;
 import dev.alphasucks.aea.mixin.common.EntityFlagsAccessor;
+import dev.overgrown.apoli.client.ClientResolvedPowers;
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import dev.overgrown.apoli.condition.BiEntityCondition;
 import dev.overgrown.apoli.condition.context.BiEntityCtx;
 import dev.overgrown.apoli.condition.context.EntityCtx;
 import dev.overgrown.apoli.power.ApoliPowers;
 import dev.overgrown.apoli.power.Power;
 import dev.overgrown.apoli.power.PowerContainer;
-import dev.overgrown.apoli.power.PowerLookup;
 import dev.overgrown.apoli.power.PowerType;
+import dev.overgrown.apoli.power.PowerTypeUsage;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-
+import net.minecraft.world.entity.LivingEntity;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,45 +31,100 @@ import java.util.Optional;
  * {@code aea:see_invisible}: the holder sees invisible entities, drawn at the configured opacity. Only what the holder
  * sees changes: the entity stays invisible to everyone else, and {@code isInvisible()} (and so {@code apoli:invisible})
  * is untouched. See {@code EntitySeeInvisibleMixin} and {@code LivingEntityRendererSeeInvisibleMixin}.
+ *
+ * <p>The power's own {@code condition} is resolved on the server and synced ({@link #resolvesForClient()}), so the
+ * renderer reads the server's answer instead of evaluating it again.
  */
 public final class SeeInvisiblePower extends PowerType<SeeInvisiblePower.Cfg> {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("aea", "see_invisible");
+    public static final PowerTypeUsage.Handle HELD = PowerTypeUsage.handle(ID);
 
     /** Shared entity flag the game sets for the Invisibility effect and the {@code Invisible} data tag. */
     private static final int FLAG_INVISIBLE = 5;
 
-    /** Why an entity is invisible: {@code any}, {@code effect}, a power ID or a {@code #}power tag. */
-    public record Source(Kind kind, ResourceLocation id) {
+    /**
+     * Why an entity is invisible. Written as a string ({@code "any"}, {@code "effect"}, a power ID or a
+     * {@code #}power tag) or, as in AEA for Fabric, an object: {@code {"type": "effect", "effect": ...}},
+     * {@code {"type": "power", "power": ...}} or {@code {"type": "power_tag", "tag": ...}}.
+     * Tags are Apoli's own power {@code tags}.
+     */
+    public record Source(Kind kind, ResourceLocation id, String tag, Holder<MobEffect> effect) {
         public enum Kind { ANY, EFFECT, POWER, TAG }
 
-        public static final Codec<Source> CODEC = Codec.STRING.comapFlatMap(Source::read, Source::write);
+        static Source any() { return new Source(Kind.ANY, null, null, null); }
+        static Source effect(Holder<MobEffect> effect) { return new Source(Kind.EFFECT, null, null, effect); }
+        static Source power(ResourceLocation id) { return new Source(Kind.POWER, id, null, null); }
+        static Source tag(String tag) { return new Source(Kind.TAG, null, tag, null); }
+
+        private static final Codec<Source> STRING = Codec.STRING.comapFlatMap(Source::read, Source::write);
+
+        private record Obj(String type, Optional<ResourceLocation> effect, Optional<ResourceLocation> power, Optional<String> tag) {}
+
+        private static final Codec<Source> OBJECT = RecordCodecBuilder.<Obj>create(i -> i.group(
+            Codec.STRING.fieldOf("type").forGetter(Obj::type),
+            ResourceLocation.CODEC.optionalFieldOf("effect").forGetter(Obj::effect),
+            ResourceLocation.CODEC.optionalFieldOf("power").forGetter(Obj::power),
+            Codec.STRING.optionalFieldOf("tag").forGetter(Obj::tag)
+        ).apply(i, Obj::new)).comapFlatMap(Source::fromObj, Source::toObj);
+
+        public static final Codec<Source> CODEC = Codec.withAlternative(STRING, OBJECT);
 
         private static DataResult<Source> read(String raw) {
-            if (raw.equals("any")) return DataResult.success(new Source(Kind.ANY, null));
-            if (raw.equals("effect")) return DataResult.success(new Source(Kind.EFFECT, null));
-            boolean tag = raw.startsWith("#");
-            ResourceLocation id = ResourceLocation.tryParse(tag ? raw.substring(1) : raw);
+            if (raw.equals("any")) return DataResult.success(any());
+            if (raw.equals("effect")) return DataResult.success(effect(MobEffects.INVISIBILITY));
+            if (raw.startsWith("#")) return raw.length() > 1 ? DataResult.success(tag(raw.substring(1)))
+                : DataResult.error(() -> "Empty power tag in see_invisible source");
+            ResourceLocation id = ResourceLocation.tryParse(raw);
             if (id == null) return DataResult.error(() -> "Not a source: \"" + raw + "\". Use \"any\", \"effect\", a power ID or a #power tag.");
-            return DataResult.success(new Source(tag ? Kind.TAG : Kind.POWER, id));
+            return DataResult.success(power(id));
+        }
+
+        private static DataResult<Source> fromObj(Obj o) {
+            return switch (o.type()) {
+                case "any" -> DataResult.success(any());
+                case "effect" -> {
+                    if (o.effect().isEmpty()) yield DataResult.success(effect(MobEffects.INVISIBILITY));
+                    Optional<Holder.Reference<MobEffect>> h = BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, o.effect().get()));
+                    yield h.<DataResult<Source>>map(r -> DataResult.success(effect(r)))
+                        .orElseGet(() -> DataResult.error(() -> "Unknown effect in see_invisible source: " + o.effect().get()));
+                }
+                case "power" -> o.power().map(p -> DataResult.success(power(p)))
+                    .orElseGet(() -> DataResult.error(() -> "see_invisible source of type \"power\" needs \"power\""));
+                case "power_tag", "tag" -> o.tag().map(t -> DataResult.success(tag(t.startsWith("#") ? t.substring(1) : t)))
+                    .orElseGet(() -> DataResult.error(() -> "see_invisible source of type \"power_tag\" needs \"tag\""));
+                default -> DataResult.error(() -> "Unknown see_invisible source type: " + o.type());
+            };
+        }
+
+        private Obj toObj() {
+            return switch (kind) {
+                case ANY -> new Obj("any", Optional.empty(), Optional.empty(), Optional.empty());
+                case EFFECT -> new Obj("effect", effect.unwrapKey().map(ResourceKey::location), Optional.empty(), Optional.empty());
+                case POWER -> new Obj("power", Optional.empty(), Optional.of(id), Optional.empty());
+                case TAG -> new Obj("power_tag", Optional.empty(), Optional.empty(), Optional.of(tag));
+            };
         }
 
         private String write() {
             return switch (kind) {
                 case ANY -> "any";
-                case EFFECT -> "effect";
+                case EFFECT -> effect.is(MobEffects.INVISIBILITY) ? "effect" : effect.unwrapKey().map(k -> k.location().toString()).orElse("effect");
                 case POWER -> id.toString();
-                case TAG -> "#" + id;
+                case TAG -> "#" + tag;
             };
         }
 
         boolean matches(Entity target) {
             return switch (kind) {
                 case ANY -> true;
-                case EFFECT -> ((EntityFlagsAccessor) target).aea$sharedFlag(FLAG_INVISIBLE);
+                case EFFECT -> effect.is(MobEffects.INVISIBILITY)
+                    ? ((EntityFlagsAccessor) target).aea$sharedFlag(FLAG_INVISIBLE)
+                    : target instanceof LivingEntity living && living.hasEffect(effect);
                 case POWER -> hasActive(target, id);
                 case TAG -> {
-                    for (ResourceLocation power : PowerTags.get(id, target.level().isClientSide())) {
-                        if (hasActive(target, power)) yield true;
+                    List<ResourceLocation> tagged = ApoliPowers.withTag(tag);
+                    for (int i = 0; i < tagged.size(); i++) {
+                        if (hasActive(target, tagged.get(i))) yield true;
                     }
                     yield false;
                 }
@@ -74,9 +136,10 @@ public final class SeeInvisiblePower extends PowerType<SeeInvisiblePower.Cfg> {
 
     public record Cfg(float opacity, Optional<BiEntityCondition> bientityCondition, List<Source> sources) {
         boolean reveals(Entity observer, Entity target) {
-            if (bientityCondition.isPresent() && !bientityCondition.get().test(BiEntityCtx.of(observer, target, target.level()))) return false;
             for (int i = 0; i < sources.size(); i++) {
-                if (sources.get(i).matches(target)) return true;
+                if (sources.get(i).matches(target)) {
+                    return bientityCondition.isEmpty() || bientityCondition.get().test(BiEntityCtx.of(observer, target, target.level()));
+                }
             }
             return false;
         }
@@ -84,8 +147,8 @@ public final class SeeInvisiblePower extends PowerType<SeeInvisiblePower.Cfg> {
 
     private static final MapCodec<Cfg> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
         Codec.floatRange(0.0F, 1.0F).optionalFieldOf("opacity", 0.5F).forGetter(Cfg::opacity),
-        BiEntityCondition.CODEC.optionalFieldOf("bientity_condition").forGetter(Cfg::bientityCondition),
-        SOURCES.optionalFieldOf("source", List.of(new Source(Source.Kind.ANY, null))).forGetter(Cfg::sources)
+        LoggedOptionalField.strict("bientity_condition", BiEntityCondition.CODEC).forGetter(Cfg::bientityCondition),
+        SOURCES.optionalFieldOf("source", List.of(Source.any())).forGetter(Cfg::sources)
     ).apply(i, Cfg::new));
 
     @Override
@@ -93,17 +156,9 @@ public final class SeeInvisiblePower extends PowerType<SeeInvisiblePower.Cfg> {
         return CODEC;
     }
 
-    private static int cachedGeneration = -1;
-    private static boolean cachedInUse;
-
-    /** Whether any loaded power uses this type, so the checks cost nothing on packs that never do. */
-    private static boolean inUse() {
-        int generation = ApoliPowers.generation();
-        if (generation != cachedGeneration) {
-            cachedInUse = ApoliPowers.anyOfType(ID);
-            cachedGeneration = generation;
-        }
-        return cachedInUse;
+    @Override
+    public boolean resolvesForClient() {
+        return true;
     }
 
     /**
@@ -111,22 +166,45 @@ public final class SeeInvisiblePower extends PowerType<SeeInvisiblePower.Cfg> {
      * the observer's powers reveal it. With several matching powers the most visible one wins.
      */
     public static float revealOpacity(Entity observer, Entity target) {
-        if (observer == null || !inUse()) return Float.NaN;
-        float[] best = {Float.NaN};
-        PowerLookup.forEach(observer, ID, Cfg.class, cfg -> {
-            if ((Float.isNaN(best[0]) || cfg.opacity() < best[0]) && cfg.reveals(observer, target)) best[0] = cfg.opacity();
-        });
-        return best[0];
+        if (observer == null) return Float.NaN;
+        boolean client = observer.level().isClientSide();
+        if (!client && !HELD.isHeld()) return Float.NaN;
+        PowerContainer container = PowerContainer.of(observer);
+        if (container == null || container.isEmpty()) return Float.NaN;
+        List<ResourceLocation> powers = container.powersOfType(ID);
+        if (powers.isEmpty()) return Float.NaN;
+
+        float best = Float.NaN;
+        EntityCtx ctx = null;
+        for (int i = 0; i < powers.size(); i++) {
+            ResourceLocation id = powers.get(i);
+            if (container.isSuppressed(id)) continue;
+            Power power = ApoliPowers.get(id);
+            if (power == null || !(power.config() instanceof Cfg cfg)) continue;
+            if (!Float.isNaN(best) && cfg.opacity() >= best) continue;
+            if (client) {
+                if (!ClientResolvedPowers.isActive(id)) continue;
+            } else if (power.condition().isPresent()) {
+                if (ctx == null) ctx = EntityCtx.of(observer, observer.level());
+                if (!testSafely(power, ctx)) continue;
+            }
+            if (cfg.reveals(observer, target)) best = cfg.opacity();
+        }
+        return best;
     }
 
     /** The entity holds this power, it is not suppressed and its condition passes. */
     private static boolean hasActive(Entity entity, ResourceLocation powerId) {
         PowerContainer container = PowerContainer.of(entity);
-        if (container == null || !container.hasPower(powerId) || container.isSuppressed(powerId)) return false;
+        if (container == null || container.isEmpty() || !container.hasPower(powerId) || container.isSuppressed(powerId)) return false;
         Power power = ApoliPowers.get(powerId);
-        if (power == null || power.condition().isEmpty()) return power != null;
+        if (power == null) return false;
+        return power.condition().isEmpty() || testSafely(power, EntityCtx.of(entity, entity.level()));
+    }
+
+    private static boolean testSafely(Power power, EntityCtx ctx) {
         try {
-            return power.condition().get().test(EntityCtx.of(entity, entity.level()));
+            return power.condition().get().test(ctx);
         } catch (RuntimeException e) {
             return false;
         }

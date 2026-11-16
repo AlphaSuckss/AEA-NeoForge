@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.sync.action.bientity;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.overgrown.apoli.action.ActionType;
@@ -36,7 +37,7 @@ public final class SuppressPowerAction implements ActionType<BiEntityCtx, Suppre
         IdCodecs.ID.listOf().optionalFieldOf("power_types", List.of()).forGetter(Cfg::types),
         IdCodecs.ID.listOf().optionalFieldOf("power_sources", List.of()).forGetter(Cfg::sources),
         IdCodecs.ID.listOf().optionalFieldOf("ignored_powers", List.of()).forGetter(Cfg::ignored),
-        BiEntityAction.CODEC.optionalFieldOf("bientity_action").forGetter(Cfg::action)
+        LoggedOptionalField.of("bientity_action", BiEntityAction.CODEC).forGetter(Cfg::action)
     ).apply(i, Cfg::new));
 
     private final boolean liberate;
