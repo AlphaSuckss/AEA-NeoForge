@@ -3,9 +3,12 @@ package dev.alphasucks.aea.compat.addon;
 import dev.alphasucks.aea.compat.Reg;
 import dev.alphasucks.aea.compat.addon.condition.damage.AttackerActionCondition;
 import dev.alphasucks.aea.compat.addon.condition.damage.CommandCondition;
+import dev.alphasucks.aea.compat.addon.power.MilkImmunityPower;
 import dev.alphasucks.aea.compat.addon.power.ModifyDropsPower;
+import dev.alphasucks.aea.compat.addon.power.SeeInvisiblePower;
 import dev.alphasucks.aea.compat.addon.power.VelocityImmunityPower;
 import dev.alphasucks.aea.compat.addon.power.WalkOnPowderSnowPower;
+import dev.alphasucks.aea.gamerule.GameRuleCondition;
 import dev.alphasucks.aea.hitbox.power.HitboxPartPower;
 import dev.alphasucks.aea.mobai.MobAi;
 import dev.overgrown.apoli.condition.ConditionTypes;
@@ -17,6 +20,10 @@ public final class AddonTypes {
     public static void register() {
         Reg.power("aea:velocity_immunity", new VelocityImmunityPower());
         Reg.power(HitboxPartPower.ID.toString(), new HitboxPartPower());
+        Reg.power(SeeInvisiblePower.ID.toString(), new SeeInvisiblePower());
+        Reg.power(MilkImmunityPower.ID.toString(), new MilkImmunityPower());
+        MilkImmunityPower.register();
+        GameRuleCondition.register();
         MobAi.register();
         Reg.power("moborigins:walk_on_powder_snow", new WalkOnPowderSnowPower());
         Reg.power("apoli:modify_drops", new ModifyDropsPower());

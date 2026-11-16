@@ -27,6 +27,14 @@ public final class SelfTestCommands {
                     .executes(c -> AEACommands.guard(() -> SelfTest.dump(c.getSource(), StringArgumentType.getString(c, "namespace"))))))
                 .then(Commands.literal("probe").then(Commands.argument("power", ResourceLocationArgument.id())
                     .executes(c -> AEACommands.guard(() -> SelfTest.probe(c.getSource(), ResourceLocationArgument.getId(c, "power"))))))
+                .then(Commands.literal("seeinvis").then(Commands.argument("power", ResourceLocationArgument.id())
+                    .executes(c -> AEACommands.guard(() -> SeeInvisibleSelfTest.run(c.getSource(), ResourceLocationArgument.getId(c, "power"))))))
+                .then(Commands.literal("milk").executes(c -> AEACommands.guard(() -> EffectsSelfTest.milk(c.getSource()))))
+                .then(Commands.literal("effects").executes(c -> AEACommands.guard(() -> EffectsSelfTest.effects(c.getSource()))))
+                .then(Commands.literal("cond").then(Commands.argument("json", StringArgumentType.greedyString())
+                    .executes(c -> AEACommands.guard(() -> EffectsSelfTest.condition(c.getSource(), StringArgumentType.getString(c, "json"))))))
+                .then(Commands.literal("expr").then(Commands.argument("expression", StringArgumentType.greedyString())
+                    .executes(c -> AEACommands.guard(() -> EffectsSelfTest.expression(c.getSource(), StringArgumentType.getString(c, "expression"))))))
                 .then(Commands.literal("gui").executes(c -> AEACommands.guard(() -> GuiSelfTest.schedule(c.getSource()))))));
     }
 }

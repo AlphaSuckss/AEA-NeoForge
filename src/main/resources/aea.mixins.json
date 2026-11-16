@@ -13,12 +13,17 @@
     "common.BlockMixin",
     "common.PhantomSpawnerMixin",
     "common.AddVelocityEntityMixin",
-    "common.AddVelocityBiEntityMixin"
+    "common.AddVelocityBiEntityMixin",
+    "common.EntityFlagsAccessor",
+    "common.EntitySeeInvisibleMixin",
+    "compat.EffectImmunityPowerMixin",
+    "compat.StatusEffectConditionMixin"
   ],
   "client": [
     "client.LivingEntityRendererMixin",
     "client.PlayerRendererMixin",
-    "client.CapeLayerMixin"
+    "client.CapeLayerMixin",
+    "client.LivingEntityRendererSeeInvisibleMixin"
   ],
   "injectors": {
     "defaultRequire": 1
