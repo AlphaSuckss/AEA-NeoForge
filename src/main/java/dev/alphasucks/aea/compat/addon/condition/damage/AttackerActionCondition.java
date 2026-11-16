@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.addon.condition.damage;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.overgrown.apoli.action.EntityAction;
@@ -22,9 +23,9 @@ public final class AttackerActionCondition implements ConditionType<DamageCtx, A
     @Override
     public MapCodec<Cfg> codec() {
         return RecordCodecBuilder.mapCodec(i -> i.group(
-            EntityAction.CODEC.optionalFieldOf("entity_action").forGetter(Cfg::action),
-            DamageCondition.CODEC.optionalFieldOf("condition").forGetter(Cfg::condition),
-            EntityCondition.CODEC.optionalFieldOf("attacker_condition").forGetter(Cfg::entityCondition)
+            LoggedOptionalField.of("entity_action", EntityAction.CODEC).forGetter(Cfg::action),
+            LoggedOptionalField.strict("condition", DamageCondition.CODEC).forGetter(Cfg::condition),
+            LoggedOptionalField.strict("attacker_condition", EntityCondition.CODEC).forGetter(Cfg::entityCondition)
         ).apply(i, Cfg::new));
     }
 

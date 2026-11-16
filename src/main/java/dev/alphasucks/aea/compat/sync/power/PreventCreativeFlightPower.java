@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.sync.power;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.MapCodec;
 import dev.overgrown.apoli.action.EntityAction;
 import dev.overgrown.apoli.power.PowerType;
@@ -18,6 +19,6 @@ public final class PreventCreativeFlightPower extends PowerType<PreventCreativeF
 
     @Override
     public MapCodec<Config> configCodec() {
-        return EntityAction.CODEC.optionalFieldOf("entity_action").xmap(Config::new, Config::action);
+        return LoggedOptionalField.of("entity_action", EntityAction.CODEC).xmap(Config::new, Config::action);
     }
 }

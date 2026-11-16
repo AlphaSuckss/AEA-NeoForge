@@ -28,9 +28,11 @@ public final class MilkImmunityPower extends PowerType<MilkImmunityPower.Cfg> {
         /** Whether milk leaves this effect alone. With no effect fields at all, milk removes nothing. */
         boolean protects(Holder<MobEffect> holder) {
             if (effect.isEmpty() && effects.isEmpty() && effectType.isEmpty()) return !inverted;
-            ResourceLocation id = holder.unwrapKey().map(k -> k.location()).orElse(null);
-            boolean listed = id != null && (effect.map(id::equals).orElse(false) || effects.map(l -> l.contains(id)).orElse(false))
-                || effectType.map(t -> EffectTypes.matches(t, holder)).orElse(false);
+            boolean listed = effectType.isPresent() && EffectTypes.matches(effectType.get(), holder);
+            if (!listed && (effect.isPresent() || effects.isPresent()) && holder instanceof Holder.Reference<MobEffect> ref) {
+                ResourceLocation id = ref.key().location();
+                listed = effect.isPresent() && effect.get().equals(id) || effects.isPresent() && effects.get().contains(id);
+            }
             return inverted != listed;
         }
     }

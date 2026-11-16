@@ -44,6 +44,7 @@ public final class SyncTypes {
     public static void register() {
         // Powers
         Reg.power("sync:mobs_ignore", new MobsIgnorePower());
+        MobsIgnorePower.register();
         Reg.power("sync:flip_model", new FlipModelPower());
         Reg.power("sync:entity_texture_overlay", new EntityTextureOverlayPower());
         Reg.power("sync:prevent_creative_flight", new PreventCreativeFlightPower());

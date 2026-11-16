@@ -73,8 +73,7 @@ public final class LegacyNbtCondition implements ConditionType<ItemCtx, LegacyNb
                 if (data == null || !(want instanceof CompoundTag wc) || !NbtUtils.compareNbt(wc, data.copyTag(), true)) return false;
                 continue;
             }
-            ResourceLocation rl = ResourceLocation.tryParse(key);
-            DataComponentType type = rl == null ? null : BuiltInRegistries.DATA_COMPONENT_TYPE.get(rl);
+            DataComponentType type = TYPES.computeIfAbsent(key, LegacyNbtCondition::componentType).orElse(null);
             if (type == null || type.codec() == null) continue;
             Object actual = stack.get(type);
             if (actual == null) return false;
@@ -83,6 +82,14 @@ public final class LegacyNbtCondition implements ConditionType<ItemCtx, LegacyNb
             if (!matches(want, have, ctx)) return false;
         }
         return true;
+    }
+
+    /** Component types by key, resolved once (they are built-in, registered before data packs). */
+    private static final java.util.Map<String, java.util.Optional<DataComponentType<?>>> TYPES = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static java.util.Optional<DataComponentType<?>> componentType(String key) {
+        ResourceLocation rl = ResourceLocation.tryParse(key);
+        return java.util.Optional.ofNullable(rl == null ? null : BuiltInRegistries.DATA_COMPONENT_TYPE.get(rl));
     }
 
     private static boolean matches(Tag want, Tag have, ItemCtx ctx) {

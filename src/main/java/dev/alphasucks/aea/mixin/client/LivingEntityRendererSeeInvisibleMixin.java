@@ -1,5 +1,7 @@
 package dev.alphasucks.aea.mixin.client;
 
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -18,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * {@code aea:see_invisible}: draws a revealed entity at the power's opacity. Vanilla already draws an invisible entity
  * the viewer may see as a see-through body; this sets how see-through, and draws it solid at opacity 0.
  */
+@OnlyIn(Dist.CLIENT)
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererSeeInvisibleMixin {
     /** Alpha for the body being drawn right now, or -1 when it is not a revealed entity. Render thread only. */

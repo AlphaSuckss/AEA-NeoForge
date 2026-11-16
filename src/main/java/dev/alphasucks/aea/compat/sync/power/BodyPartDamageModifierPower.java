@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.sync.power;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -60,7 +61,7 @@ public final class BodyPartDamageModifierPower extends PowerType<BodyPartDamageM
         Codec.DOUBLE.optionalFieldOf("z_max", 1.0).forGetter(e -> e.region.maxZ()),
         AttributeModifier.CODEC.optionalFieldOf("modifier").forGetter(e -> Optional.empty()),
         AttributeModifier.CODEC.listOf().optionalFieldOf("modifiers", List.of()).forGetter(Entry::modifiers),
-        BiEntityAction.CODEC.optionalFieldOf("bientity_action").forGetter(Entry::action)
+        LoggedOptionalField.of("bientity_action", BiEntityAction.CODEC).forGetter(Entry::action)
     ).apply(i, (part, x0, x1, y0, y1, z0, z1, single, list, action) -> {
         Region r = part.map(Region::preset).orElse(null);
         if (r == null) r = new Region(x0, x1, y0, y1, z0, z1);
@@ -73,7 +74,7 @@ public final class BodyPartDamageModifierPower extends PowerType<BodyPartDamageM
     public MapCodec<Config> configCodec() {
         return RecordCodecBuilder.mapCodec(i -> i.group(
             Codecs.singleOrList(ENTRY_CODEC).fieldOf("modifiers").forGetter(Config::entries),
-            DamageCondition.CODEC.optionalFieldOf("damage_condition").forGetter(Config::damageCondition),
+            LoggedOptionalField.strict("damage_condition", DamageCondition.CODEC).forGetter(Config::damageCondition),
             Codec.BOOL.optionalFieldOf("require_hit_data", false).forGetter(Config::requireHitData),
             Codec.BOOL.optionalFieldOf("show_hit_location", false).forGetter(Config::showHitLocation)
         ).apply(i, Config::new));

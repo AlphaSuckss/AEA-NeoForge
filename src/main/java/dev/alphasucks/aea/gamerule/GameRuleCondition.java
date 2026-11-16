@@ -21,6 +21,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 
 import java.util.Optional;
+import dev.overgrown.apoli.condition.context.StaticCtx;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraft.server.MinecraftServer;
 import java.util.function.Function;
 
 /**
@@ -29,9 +32,15 @@ import java.util.function.Function;
  * that has a level.
  */
 public final class GameRuleCondition<CTX> implements ConditionType<CTX, GameRuleCondition.Cfg> {
-    public record Cfg(String gamerule, Optional<Comparison> comparison, Optional<Double> compareTo) {
-        int value(Level level) {
+    /** The rule id is parsed once at load, so a test reads the value and compares, nothing else. */
+    public record Cfg(String gamerule, Optional<Comparison> comparison, Optional<Double> compareTo,
+                      ResourceLocation id, Comparison op, double target) {
+        static Cfg of(String gamerule, Optional<Comparison> comparison, Optional<Double> compareTo) {
             ResourceLocation id = gamerule.indexOf(':') < 0 ? null : ResourceLocation.tryParse(gamerule);
+            return new Cfg(gamerule, comparison, compareTo, id, comparison.orElse(null), compareTo.orElse(0.0));
+        }
+
+        int value(Level level) {
             return id != null ? DataGameRules.value(id, level) : DataGameRules.vanillaValue(gamerule, level);
         }
     }
@@ -40,7 +49,7 @@ public final class GameRuleCondition<CTX> implements ConditionType<CTX, GameRule
         Codec.STRING.fieldOf("gamerule").forGetter(Cfg::gamerule),
         Comparison.CODEC.optionalFieldOf("comparison").forGetter(Cfg::comparison),
         Codec.DOUBLE.optionalFieldOf("compare_to").forGetter(Cfg::compareTo)
-    ).apply(i, Cfg::new)).validate(cfg -> cfg.comparison().isPresent() != cfg.compareTo().isPresent()
+    ).apply(i, Cfg::of)).validate(cfg -> cfg.comparison().isPresent() != cfg.compareTo().isPresent()
         ? DataResult.error(() -> "aea:gamerule needs both \"comparison\" and \"compare_to\", or neither")
         : DataResult.success(cfg));
 
@@ -58,7 +67,13 @@ public final class GameRuleCondition<CTX> implements ConditionType<CTX, GameRule
     @Override
     public boolean test(Cfg cfg, CTX ctx) {
         int value = cfg.value(level.apply(ctx));
-        return cfg.comparison().map(c -> c.compare(value, cfg.compareTo().get())).orElse(value != 0);
+        return cfg.op() == null ? value != 0 : cfg.op().compare(value, cfg.target());
+    }
+
+    /** A static condition has no level of its own, so it reads the server's. */
+    private static Level serverLevel(StaticCtx ctx) {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? null : server.overworld();
     }
 
     public static void register() {
@@ -70,6 +85,7 @@ public final class GameRuleCondition<CTX> implements ConditionType<CTX, GameRule
         Reg.condition(ConditionTypes.DAMAGE, id, new GameRuleCondition<DamageCtx>(DamageCtx::level));
         Reg.condition(ConditionTypes.FLUID, id, new GameRuleCondition<FluidCtx>(FluidCtx::level));
         Reg.condition(ConditionTypes.BIOME, id, new GameRuleCondition<BiomeCtx>(BiomeCtx::level));
+        Reg.condition(ConditionTypes.STATIC, id, new GameRuleCondition<StaticCtx>(GameRuleCondition::serverLevel));
         // gamerule(<namespace>:<name>) in expressions: the rule's value, with true and false as 1 and 0.
         ExprParser.registerIdFunction("gamerule", (rule, args, name, at) -> new ExprVars.ResolvedVar(
             (entity, container, level, value) -> DataGameRules.value(rule, level != null ? level : entity != null ? entity.level() : null), false));

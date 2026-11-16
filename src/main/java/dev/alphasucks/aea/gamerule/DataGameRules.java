@@ -193,9 +193,12 @@ public final class DataGameRules {
         return clamped;
     }
 
+    /** Saved values are keyed by the id's string; cached so a condition test doesn't build one each time. */
+    private static final Map<ResourceLocation, String> KEYS = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static int serverValue(ResourceLocation id, Rule rule) {
         Values values = saved;
-        Integer stored = values == null ? null : values.values.get(id.toString());
+        Integer stored = values == null ? null : values.values.get(KEYS.computeIfAbsent(id, ResourceLocation::toString));
         return stored == null ? rule.defaultValue() : rule.clamp(stored);
     }
 

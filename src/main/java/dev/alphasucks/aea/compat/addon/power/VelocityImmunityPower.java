@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.addon.power;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -30,7 +31,7 @@ public final class VelocityImmunityPower extends PowerType<VelocityImmunityPower
         return RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.BOOL.optionalFieldOf("entity", true).forGetter(Config::entity),
             Codec.BOOL.optionalFieldOf("bientity", true).forGetter(Config::bientity),
-            BiEntityCondition.CODEC.optionalFieldOf("bientity_condition").forGetter(Config::bientityCondition)
+            LoggedOptionalField.strict("bientity_condition", BiEntityCondition.CODEC).forGetter(Config::bientityCondition)
         ).apply(i, Config::new));
     }
 }

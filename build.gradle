@@ -43,7 +43,9 @@ neoForge {
 
 dependencies {
     // Put Overgrown's jars in libs/ (apoli-1.124.0.jar, origins-1.49.0.jar).
-    implementation files('libs/apoli-1.124.0.jar', 'libs/origins-1.49.0.jar')
+    implementation files('libs/apoli-1.124.0.jar')
+    // Origins is optional at runtime and AEA never imports it; compile against it only.
+    compileOnly files('libs/origins-1.49.0.jar')
 }
 
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

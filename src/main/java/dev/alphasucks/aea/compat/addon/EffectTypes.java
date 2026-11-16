@@ -67,15 +67,21 @@ public final class EffectTypes {
         return AEA.id(path.toString());
     }
 
-    /** The types a sentinel ID stands for, or null when the ID is a real effect. */
+    private static final java.util.Map<ResourceLocation, List<Type>> DECODED = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The types a sentinel ID stands for, or null when the ID is a real effect. Decoded once per ID. */
     public static List<Type> fromSentinel(ResourceLocation id) {
         if (!id.getNamespace().equals("aea") || !id.getPath().startsWith(SENTINEL)) return null;
+        return DECODED.computeIfAbsent(id, EffectTypes::decode);
+    }
+
+    private static List<Type> decode(ResourceLocation id) {
         List<Type> types = new ArrayList<>();
         for (String name : id.getPath().substring(SENTINEL.length()).split("/")) {
             for (Type type : Type.values()) {
                 if (type.getSerializedName().equals(name)) types.add(type);
             }
         }
-        return types;
+        return List.copyOf(types);
     }
 }

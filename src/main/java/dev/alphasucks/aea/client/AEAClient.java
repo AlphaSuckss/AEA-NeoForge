@@ -53,12 +53,16 @@ public final class AEAClient {
     }
 
     public static boolean flipped(Entity entity) {
-        return !active(entity, FlipModelPower.ID, FlipModelPower.Config.class).isEmpty();
+        return PowerLookup.hasActive(entity, FlipModelPower.ID);
+    }
+
+    /** The first active texture overlay, or null. Allocation-free, for render hooks. */
+    public static EntityTextureOverlayPower.Config overlayOrNull(Entity entity) {
+        return PowerLookup.firstActive(entity, EntityTextureOverlayPower.ID, EntityTextureOverlayPower.Config.class);
     }
 
     public static Optional<EntityTextureOverlayPower.Config> overlay(Entity entity) {
-        List<EntityTextureOverlayPower.Config> l = active(entity, EntityTextureOverlayPower.ID, EntityTextureOverlayPower.Config.class);
-        return l.isEmpty() ? Optional.empty() : Optional.of(l.get(0));
+        return Optional.ofNullable(overlayOrNull(entity));
     }
 
     private static void cameraAngles(ViewportEvent.ComputeCameraAngles event) {

@@ -1,5 +1,6 @@
 package dev.alphasucks.aea.compat.sync.power;
 
+import dev.overgrown.apoli.codec.LoggedOptionalField;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -39,12 +40,12 @@ public final class ModifyEnchantmentDamagePower extends PowerType<ModifyEnchantm
         return RecordCodecBuilder.mapCodec(i -> i.group(
             ResourceKey.codec(Registries.ENCHANTMENT).fieldOf("enchantment").forGetter(Config::enchantment),
             Codec.FLOAT.optionalFieldOf("base_value", 0f).forGetter(Config::baseValue),
-            DamageCondition.CODEC.optionalFieldOf("damage_condition").forGetter(Config::damageCondition),
-            EntityCondition.CODEC.optionalFieldOf("target_condition").forGetter(Config::targetCondition),
-            BiEntityCondition.CODEC.optionalFieldOf("bientity_condition").forGetter(Config::bientityCondition),
+            LoggedOptionalField.strict("damage_condition", DamageCondition.CODEC).forGetter(Config::damageCondition),
+            LoggedOptionalField.strict("target_condition", EntityCondition.CODEC).forGetter(Config::targetCondition),
+            LoggedOptionalField.strict("bientity_condition", BiEntityCondition.CODEC).forGetter(Config::bientityCondition),
             AttributeModifier.CODEC.optionalFieldOf("modifier").forGetter(c -> Optional.empty()),
             AttributeModifier.CODEC.listOf().optionalFieldOf("modifiers", List.of()).forGetter(Config::modifiers),
-            BiEntityAction.CODEC.optionalFieldOf("bientity_action").forGetter(Config::bientityAction)
+            LoggedOptionalField.of("bientity_action", BiEntityAction.CODEC).forGetter(Config::bientityAction)
         ).apply(i, (e, b, d, t, be, single, list, a) -> {
             List<AttributeModifier> all = new ArrayList<>(list);
             single.ifPresent(all::add);

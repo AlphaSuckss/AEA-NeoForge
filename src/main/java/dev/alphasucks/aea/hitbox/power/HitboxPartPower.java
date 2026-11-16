@@ -39,7 +39,7 @@ public final class HitboxPartPower extends PowerType<HitboxPartPower.Cfg> {
     @Override
     public void tick(ResourceLocation id, Cfg cfg, PowerContainer holder) {
         LivingEntity owner = holder.owner();
-        if (owner == null || owner.level().isClientSide() || !conditionHolds(id, owner)) return;
+        if (owner == null || owner.level().isClientSide()) return;
         HitboxParts.of(owner).touch(owner, id, cfg);
     }
 
@@ -58,12 +58,16 @@ public final class HitboxPartPower extends PowerType<HitboxPartPower.Cfg> {
         if (owner != null && !owner.level().isClientSide()) HitboxParts.of(owner).drop(id);
     }
 
-    /** Apoli 1.124 ticks every held power, so the power's own condition is checked here. */
-    private static boolean conditionHolds(ResourceLocation id, LivingEntity owner) {
+    /**
+     * Apoli 1.124 ticks every held power whatever its {@code condition}, so the condition is checked here, on the
+     * context the container already built. Parts that stop being touched are dropped.
+     */
+    @Override
+    public boolean isActive(ResourceLocation id, Cfg cfg, EntityCtx ctx) {
         Power power = ApoliPowers.get(id);
         if (power == null || power.condition().isEmpty()) return true;
         try {
-            return power.condition().get().test(EntityCtx.of(owner, owner.level()));
+            return power.condition().get().test(ctx);
         } catch (RuntimeException e) {
             return false;
         }
