@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -46,6 +47,7 @@ import net.neoforged.neoforge.event.CommandEvent;
 import net.neoforged.neoforge.event.ServerChatEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -102,7 +104,8 @@ public final class MindControl {
         });
 
     public record Cfg(int controls, Optional<Integer> duration, Optional<BiEntityCondition> releaseCondition, Optional<Integer> struggle,
-                      boolean killCredit, boolean closeScreens, Optional<BiEntityAction> onStart, Optional<BiEntityAction> onRelease) {}
+                      boolean killCredit, boolean closeScreens, boolean bodyDamage, float shareDamage,
+                      Optional<BiEntityAction> onStart, Optional<BiEntityAction> onRelease) {}
 
     public static final MapCodec<Cfg> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
         CONTROLS.optionalFieldOf("controls", Control.ALL).forGetter(Cfg::controls),
@@ -111,6 +114,8 @@ public final class MindControl {
         Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("struggle").forGetter(Cfg::struggle),
         Codec.BOOL.optionalFieldOf("kill_credit", false).forGetter(Cfg::killCredit),
         Codec.BOOL.optionalFieldOf("close_screens", false).forGetter(Cfg::closeScreens),
+        Codec.BOOL.optionalFieldOf("body_damage", true).forGetter(Cfg::bodyDamage),
+        Codec.floatRange(0.0F, Float.MAX_VALUE).optionalFieldOf("share_damage", 0.0F).forGetter(Cfg::shareDamage),
         LoggedOptionalField.of("on_start", BiEntityAction.CODEC).forGetter(Cfg::onStart),
         LoggedOptionalField.of("on_release", BiEntityAction.CODEC).forGetter(Cfg::onRelease)
     ).apply(i, Cfg::new));
@@ -473,8 +478,15 @@ public final class MindControl {
             body.discard();
             return false;
         }
+        // With body_damage off the body can't be hurt, except by what nothing can resist (the void, /kill).
+        if (!s.cfg.bodyDamage() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return false;
+        return hurtController(s, source, amount);
+    }
+
+    /** Hurts a controlling player, who is a spectator. A blow that could kill them ends the session first, so they die at home. */
+    private static boolean hurtController(Session s, DamageSource source, float amount) {
         ServerPlayer controller = online(s.controllerId);
-        if (controller == null || source.getEntity() == controller) return false;
+        if (controller == null || amount <= 0 || source.getEntity() == controller) return false;
         if (amount >= controller.getHealth() + controller.getAbsorptionAmount()) {
             end(s, true);
             return controller.hurt(source, amount);
@@ -486,6 +498,14 @@ public final class MindControl {
         } finally {
             controller.getAbilities().invulnerable = invulnerable;
         }
+    }
+
+    /** share_damage: part of what the controlled target takes (before its armour) also hits the controller. */
+    private static void onDamageTaken(LivingDamageEvent.Post event) {
+        if (BY_VICTIM.isEmpty()) return;
+        Session s = BY_VICTIM.get(event.getEntity().getUUID());
+        if (s == null || s.ended || s.cfg.shareDamage() <= 0) return;
+        hurtController(s, event.getSource(), event.getOriginalDamage() * s.cfg.shareDamage());
     }
 
     private static void onDamage(LivingIncomingDamageEvent event) {
@@ -599,6 +619,7 @@ public final class MindControl {
         modBus.addListener(RegisterPayloadHandlersEvent.class, MindControl::registerPayloads);
         NeoForge.EVENT_BUS.addListener(ServerTickEvent.Pre.class, e -> tick(e.getServer()));
         NeoForge.EVENT_BUS.addListener(LivingIncomingDamageEvent.class, MindControl::onDamage);
+        NeoForge.EVENT_BUS.addListener(LivingDamageEvent.Post.class, MindControl::onDamageTaken);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, ServerChatEvent.class, MindControl::onChat);
         NeoForge.EVENT_BUS.addListener(EventPriority.HIGH, CommandEvent.class, MindControl::onCommand);
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, MindControl::onLogin);
