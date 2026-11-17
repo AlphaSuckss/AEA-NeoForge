@@ -29,6 +29,7 @@ public final class AEATypes {
         SyncTypes.register();
         LegacyTypes.register();
         AddonTypes.register();
+        dev.alphasucks.aea.mindcontrol.MindControlTypes.register();
 
         AEA.LOGGER.info("[AEA] Registered {} extra power type(s) plus legacy actions/conditions.", PowerTypeRegistry.view().size() - before);
     }

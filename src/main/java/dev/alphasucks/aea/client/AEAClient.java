@@ -40,6 +40,7 @@ public final class AEAClient {
 
     public static void init(IEventBus modBus) {
         modBus.addListener(AEAClient::addLayers);
+        dev.alphasucks.aea.mindcontrol.client.MindControlClient.init(modBus);
         AeaGuiClient.init(modBus);
         ClientHitboxParts.init();
         ClientPackTextures.init();
