@@ -62,6 +62,7 @@ public final class AEA {
 
     public AEA(IEventBus modBus, ModContainer container) {
         container.registerConfig(ModConfig.Type.COMMON, AEAConfig.SPEC);
+        container.registerConfig(ModConfig.Type.CLIENT, AEAClientConfig.SPEC);
         AEALoot.register(modBus);
         NeoForge.EVENT_BUS.register(new AEAHooks());
         NeoForge.EVENT_BUS.register(new AEACommands());

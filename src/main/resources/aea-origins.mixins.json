@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.alphasucks.aea.compat.origins.mixin",
+  "plugin": "dev.alphasucks.aea.compat.origins.OriginsMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "ChooseOriginScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

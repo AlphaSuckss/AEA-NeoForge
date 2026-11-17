@@ -31,6 +31,9 @@ config="aea-hitbox.mixins.json"
 [[mixins]]
 config="aea-apoli.mixins.json"
 
+[[mixins]]
+config="aea-origins.mixins.json"
+
 [[dependencies.aea]]
     modId="neoforge"
     type="required"
