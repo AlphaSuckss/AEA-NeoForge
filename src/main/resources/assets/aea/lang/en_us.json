@@ -1,0 +1,7 @@
+{
+  "entity.aea.mind_control_body": "Body",
+  "aea.mind_control.controlling": "Controlling %s",
+  "aea.mind_control.controlled": "%s is controlling you",
+  "aea.mind_control.struggle": "Press keys to struggle free",
+  "death.aea.mind_control.controlled_by": " (controlled by %s)"
+}

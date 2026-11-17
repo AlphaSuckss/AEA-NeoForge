@@ -72,6 +72,7 @@ public final class AEA {
         PackTextures.register(modBus);
         PackAssets.register(modBus);
         DataGameRules.register(modBus);
+        dev.alphasucks.aea.mindcontrol.MindControl.register(modBus);
         if (FMLEnvironment.dist.isClient()) {
             AEAClient.init(modBus);
         }

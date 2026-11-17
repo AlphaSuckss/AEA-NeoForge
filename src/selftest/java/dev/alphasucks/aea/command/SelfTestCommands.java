@@ -1,6 +1,9 @@
 package dev.alphasucks.aea.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.commands.arguments.EntityArgument;
+import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.alphasucks.aea.gui.GuiSelfTest;
 import net.minecraft.commands.CommandSourceStack;
@@ -29,6 +32,7 @@ public final class SelfTestCommands {
                     .executes(c -> AEACommands.guard(() -> SelfTest.probe(c.getSource(), ResourceLocationArgument.getId(c, "power"))))))
                 .then(Commands.literal("seeinvis").then(Commands.argument("power", ResourceLocationArgument.id())
                     .executes(c -> AEACommands.guard(() -> SeeInvisibleSelfTest.run(c.getSource(), ResourceLocationArgument.getId(c, "power"))))))
+                .then(MindControlSelfTest.node())
                 .then(Commands.literal("spawn").executes(c -> AEACommands.guard(() -> SpawnPointSelfTest.run(c.getSource(), null)))
                     .then(Commands.argument("power", ResourceLocationArgument.id())
                         .executes(c -> AEACommands.guard(() -> SpawnPointSelfTest.run(c.getSource(), ResourceLocationArgument.getId(c, "power"))))))

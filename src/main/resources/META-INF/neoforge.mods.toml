@@ -34,6 +34,9 @@ config="aea-apoli.mixins.json"
 [[mixins]]
 config="aea-origins.mixins.json"
 
+[[mixins]]
+config="aea-mindcontrol.mixins.json"
+
 [[dependencies.aea]]
     modId="neoforge"
     type="required"
