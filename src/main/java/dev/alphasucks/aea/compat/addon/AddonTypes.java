@@ -4,6 +4,7 @@ import dev.alphasucks.aea.compat.Reg;
 import dev.alphasucks.aea.compat.addon.condition.damage.AttackerActionCondition;
 import dev.alphasucks.aea.compat.addon.condition.damage.CommandCondition;
 import dev.alphasucks.aea.compat.addon.power.MilkImmunityPower;
+import dev.alphasucks.aea.compat.addon.power.PreventSpawnPointPower;
 import dev.alphasucks.aea.compat.addon.power.ModifyDropsPower;
 import dev.alphasucks.aea.compat.addon.power.SeeInvisiblePower;
 import dev.alphasucks.aea.compat.addon.power.VelocityImmunityPower;
@@ -23,6 +24,8 @@ public final class AddonTypes {
         Reg.power(SeeInvisiblePower.ID.toString(), new SeeInvisiblePower());
         Reg.power(MilkImmunityPower.ID.toString(), new MilkImmunityPower());
         MilkImmunityPower.register();
+        Reg.power(PreventSpawnPointPower.ID.toString(), new PreventSpawnPointPower());
+        PreventSpawnPointPower.register();
         GameRuleCondition.register();
         MobAi.register();
         Reg.power("moborigins:walk_on_powder_snow", new WalkOnPowderSnowPower());

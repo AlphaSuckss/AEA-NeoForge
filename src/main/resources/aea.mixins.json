@@ -17,7 +17,8 @@
     "common.EntityFlagsAccessor",
     "common.EntitySeeInvisibleMixin",
     "compat.EffectImmunityPowerMixin",
-    "compat.StatusEffectConditionMixin"
+    "compat.StatusEffectConditionMixin",
+    "common.SetSpawnCommandMixin"
   ],
   "client": [
     "client.LivingEntityRendererMixin",
