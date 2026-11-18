@@ -2,7 +2,7 @@
 
 Every change to AEA for NeoForge 1.21.1, newest first.
 
-## 1.3.0 (in progress)
+## 1.4.0
 
 ### Added
 - `aea:hitbox_part`: a power that gives an entity an extra hit box. The box follows the entity's body, and a hit on it counts as a hit on the entity. With hit boxes shown (F3 + B) it is outlined in green.
