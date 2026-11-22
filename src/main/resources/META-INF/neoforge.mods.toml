@@ -38,7 +38,7 @@ config="aea-origins.mixins.json"
 config="aea-mindcontrol.mixins.json"
 
 [[mixins]]
-config="aea-spellengine.mixins.json"
+config="aea-spell_engine.mixins.json"
 
 [[dependencies.aea]]
     modId="neoforge"

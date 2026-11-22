@@ -9,6 +9,7 @@ import com.tacz.guns.api.event.common.GunReloadEvent;
 import com.tacz.guns.api.event.common.GunShootEvent;
 import com.tacz.guns.api.item.IGun;
 import dev.alphasucks.aea.compat.ActiveConfigs;
+import dev.overgrown.apoli.power.PowerContainer;
 import dev.overgrown.apoli.power.PowerType;
 import dev.overgrown.apoli.power.PowerTypeUsage;
 import net.minecraft.network.chat.Component;
@@ -68,13 +69,15 @@ public final class PreventGunUsePower extends PowerType<PreventGunUsePower.Cfg> 
         if (FMLEnvironment.dist.isClient()) PreventGunUseClient.register();
     }
 
-    /** The first active power that blocks {@code what} for this gun, or null. */
+    /** The first active power that blocks {@code what} for this gun, or null. Runs per tick for aiming; no allocation. */
     static Cfg blocking(LivingEntity entity, ItemStack gun, Predicate<Cfg> what) {
         if (entity == null || (!entity.level().isClientSide() && !HELD.isHeld())) return null;
-        List<Cfg> active = ActiveConfigs.of(entity, ID, Cfg.class);
-        for (int i = 0; i < active.size(); i++) {
-            Cfg cfg = active.get(i);
-            if (what.test(cfg) && cfg.matches(gun)) return cfg;
+        PowerContainer container = ActiveConfigs.holder(entity, ID);
+        if (container == null) return null;
+        List<ResourceLocation> powers = container.powersOfType(ID);
+        for (int i = 0; i < powers.size(); i++) {
+            Cfg cfg = ActiveConfigs.config(entity, container, powers.get(i), Cfg.class);
+            if (cfg != null && what.test(cfg) && cfg.matches(gun)) return cfg;
         }
         return null;
     }
@@ -87,10 +90,12 @@ public final class PreventGunUsePower extends PowerType<PreventGunUsePower.Cfg> 
         if (cfg.message().isPresent() && entity instanceof Player player) player.displayClientMessage(cfg.message().get(), true);
     }
 
+    static final Predicate<Cfg> AIM = Cfg::aim;
+
     private static void stopAiming(Player player) {
         if (player.level().isClientSide() || !HELD.isHeld()) return;
         ItemStack held = player.getMainHandItem();
-        if (!(held.getItem() instanceof IGun) || blocking(player, held, Cfg::aim) == null) return;
+        if (!(held.getItem() instanceof IGun) || blocking(player, held, AIM) == null) return;
         IGunOperator operator = IGunOperator.fromLivingEntity(player);
         if (operator.getSynIsAiming()) operator.aim(false);
     }

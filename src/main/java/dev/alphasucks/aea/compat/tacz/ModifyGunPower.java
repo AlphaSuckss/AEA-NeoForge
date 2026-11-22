@@ -18,6 +18,8 @@ import dev.alphasucks.aea.AEA;
 import dev.alphasucks.aea.compat.ActiveConfigs;
 import dev.overgrown.apoli.data.AttributeModifier;
 import dev.overgrown.apoli.data.AttributeModifierHelper;
+import dev.overgrown.apoli.power.PowerContainer;
+import dev.overgrown.apoli.power.PowerContainerImpl;
 import dev.overgrown.apoli.power.PowerType;
 import dev.overgrown.apoli.power.PowerTypeUsage;
 import net.minecraft.resources.ResourceLocation;
@@ -27,6 +29,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -36,7 +39,6 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.function.Function;
 
 /**
@@ -95,6 +97,10 @@ public final class ModifyGunPower extends PowerType<ModifyGunPower.Cfg> {
     public static void register() {
         NeoForge.EVENT_BUS.addListener(AttachmentPropertyEvent.class, ModifyGunPower::onProperties);
         NeoForge.EVENT_BUS.addListener(PlayerTickEvent.Post.class, e -> refresh(e.getEntity()));
+        // Aux data is saved with the player, but TaCZ works the stats out afresh for a new or moved player.
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, e -> forget(e.getEntity()));
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerRespawnEvent.class, e -> forget(e.getEntity()));
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerChangedDimensionEvent.class, e -> forget(e.getEntity()));
         NeoForge.EVENT_BUS.addListener(GunShootEvent.class, ModifyGunPower::onShoot);
         NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, e -> refundAmmo());
     }
@@ -205,24 +211,45 @@ public final class ModifyGunPower extends PowerType<ModifyGunPower.Cfg> {
         }
     }
 
-    /** Per side (an integrated server runs both); the int is a signature of the active configs last applied. */
-    private static final Map<Player, Integer> APPLIED = new WeakHashMap<>(), APPLIED_CLIENT = new WeakHashMap<>();
+    /**
+     * Aux keys holding a signature of the active configs last applied to the held gun, kept on the holder. Each side
+     * computes its own gun stats, so each keeps its own key.
+     */
+    private static final ResourceLocation APPLIED = ResourceLocation.fromNamespaceAndPath("aea", "modify_gun/applied"),
+        APPLIED_CLIENT = ResourceLocation.fromNamespaceAndPath("aea", "modify_gun/applied_client");
 
-    /** Recomputes the held gun's stats when the player's active {@code modify_gun} powers change. */
+    /** Recomputes the held gun's stats when the player's active {@code modify_gun} powers change. Per player per tick. */
     private static void refresh(Player player) {
+        if (!(player.getMainHandItem().getItem() instanceof IGun)) return;
         boolean client = player.level().isClientSide();
-        Map<Player, Integer> applied = client ? APPLIED_CLIENT : APPLIED;
-        if (!client && !HELD.isHeld() && applied.isEmpty()) return;
-        ItemStack held = player.getMainHandItem();
-        if (!(held.getItem() instanceof IGun)) {
-            applied.remove(player);
-            return;
+        if (client && player != ClientPlayer.get()) return;
+        if (!(PowerContainer.of(player) instanceof PowerContainerImpl container)) return;
+        ResourceLocation key = client ? APPLIED_CLIENT : APPLIED;
+        int before = container.getAuxIntOr(key, 0);
+        // Nobody holds the type and nothing was applied here: nothing to undo either.
+        if (before == 0 && (client ? container.powersOfType(ID).isEmpty() : !HELD.isHeld())) return;
+        int now = ActiveConfigs.signature(player, container, ID, Cfg.class);
+        if (now == before) return;
+        if (now == 0) container.removeAux(key);
+        else container.setAuxInt(key, now);
+        AttachmentPropertyManager.postChangeEvent(player, player.getMainHandItem());
+    }
+
+    private static void forget(Player player) {
+        if (PowerContainer.of(player) instanceof PowerContainerImpl container) container.removeAux(APPLIED);
+    }
+
+    /** Kept apart so the server never loads client classes. */
+    private static final class ClientPlayer {
+        static Player get() {
+            return net.neoforged.fml.loading.FMLEnvironment.dist.isClient() ? Local.get() : null;
         }
-        int now = ActiveConfigs.signature(player, ID, Cfg.class);
-        Integer before = applied.put(player, now);
-        // Nothing seen yet counts as no powers: recomputing once more than needed is harmless.
-        if (before == null ? now == 0 : before == now) return;
-        AttachmentPropertyManager.postChangeEvent(player, held);
+    }
+
+    private static final class Local {
+        static Player get() {
+            return net.minecraft.client.Minecraft.getInstance().player;
+        }
     }
 
     // ---- ammo_save_chance ----

@@ -1,15 +1,16 @@
-package dev.alphasucks.aea.compat.spellengine;
+package dev.alphasucks.aea.compat.spell_engine;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.alphasucks.aea.compat.Codecs;
-import dev.overgrown.apoli.power.PowerLookup;
+import dev.alphasucks.aea.compat.ActiveConfigs;
+import dev.overgrown.apoli.power.PowerContainer;
+import dev.overgrown.apoli.power.PowerContainerImpl;
 import dev.overgrown.apoli.power.PowerType;
 import dev.overgrown.apoli.power.PowerTypeUsage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.spell_engine.api.spell.container.SpellContainer;
@@ -18,8 +19,6 @@ import net.spell_engine.internals.container.SpellContainerSource;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 /**
  * {@code aea:grant_spell}: the holder knows Spell Engine spells as if equipment gave them. They show on Spell Engine's
@@ -56,32 +55,39 @@ public final class GrantSpellPower extends PowerType<GrantSpellPower.Cfg> {
         });
     }
 
-    /** What was last put in each player's containers, by key. */
-    private static final Map<Player, Map<String, List<String>>> GRANTED = new WeakHashMap<>();
+    /** Aux key holding a signature of the active grants last written to the player's containers. */
+    private static final ResourceLocation APPLIED = ResourceLocation.fromNamespaceAndPath("aea", "grant_spell/applied");
 
+    /** Per player per tick: only rebuilds the containers when the active grants change. */
     private static void update(ServerPlayer player) {
-        Map<String, List<String>> before = GRANTED.get(player);
-        if (before == null && !HELD.isHeld()) return;
-        List<Cfg> active = PowerLookup.active(player, ID, Cfg.class);
-        Map<String, List<String>> now = new LinkedHashMap<>();
-        for (Cfg cfg : active) {
-            List<String> ids = now.computeIfAbsent(cfg.always() ? ALWAYS : WITH_ITEM, k -> new ArrayList<>());
+        if (!(PowerContainer.of(player) instanceof PowerContainerImpl container)) return;
+        int before = container.getAuxIntOr(APPLIED, 0);
+        if (before == 0 && !HELD.isHeld()) return;
+        int now = ActiveConfigs.signature(player, container, ID, Cfg.class);
+        LinkedHashMap<String, SpellContainer> containers = ((SpellContainerSource.Owner) player).serverSideSpellContainers();
+        // Aux data is saved with the player; Spell Engine's containers may not be, so check they are still there.
+        if (now == before && (now == 0 || containers.containsKey(ALWAYS) || containers.containsKey(WITH_ITEM))) return;
+        if (now == 0) container.removeAux(APPLIED);
+        else container.setAuxInt(APPLIED, now);
+
+        List<String> always = new ArrayList<>(), withItem = new ArrayList<>();
+        List<ResourceLocation> powers = container.powersOfType(ID);
+        for (int i = 0; i < powers.size(); i++) {
+            Cfg cfg = ActiveConfigs.config(player, container, powers.get(i), Cfg.class);
+            if (cfg == null) continue;
+            List<String> ids = cfg.always() ? always : withItem;
             for (ResourceLocation id : cfg.spells()) {
                 String s = id.toString();
                 if (!ids.contains(s)) ids.add(s);
             }
         }
-        if (now.equals(before == null ? Map.of() : before)) return;
-        if (now.isEmpty()) GRANTED.remove(player);
-        else GRANTED.put(player, now);
-
-        LinkedHashMap<String, SpellContainer> containers = ((SpellContainerSource.Owner) player).serverSideSpellContainers();
-        containers.remove(ALWAYS);
-        containers.remove(WITH_ITEM);
-        for (Map.Entry<String, List<String>> e : now.entrySet()) {
-            List<String> ids = e.getValue();
-            containers.put(e.getKey(), new SpellContainer(SpellContainer.ContentType.ANY, "", "", ids.size(), List.copyOf(ids)));
-        }
+        put(containers, ALWAYS, always);
+        put(containers, WITH_ITEM, withItem);
         SpellContainerSource.setDirtyServerSide(player);
+    }
+
+    private static void put(LinkedHashMap<String, SpellContainer> containers, String key, List<String> ids) {
+        if (ids.isEmpty()) containers.remove(key);
+        else containers.put(key, new SpellContainer(SpellContainer.ContentType.ANY, "", "", ids.size(), List.copyOf(ids)));
     }
 }

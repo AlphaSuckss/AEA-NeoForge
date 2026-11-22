@@ -24,7 +24,7 @@ final class PreventGunUseClient {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         ItemStack held = player.getMainHandItem();
-        if (!(held.getItem() instanceof IGun) || PreventGunUsePower.blocking(player, held, PreventGunUsePower.Cfg::aim) == null) return;
+        if (!(held.getItem() instanceof IGun) || PreventGunUsePower.blocking(player, held, PreventGunUsePower.AIM) == null) return;
         if (AimKey.AIM_KEY.isDown()) AimKey.AIM_KEY.setDown(false);
         IClientPlayerGunOperator operator = IClientPlayerGunOperator.fromLocalPlayer(player);
         if (operator.isAim()) operator.aim(false);

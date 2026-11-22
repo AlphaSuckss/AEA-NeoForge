@@ -1,4 +1,4 @@
-package dev.alphasucks.aea.compat.spellengine;
+package dev.alphasucks.aea.compat.spell_engine;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;

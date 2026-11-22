@@ -1,4 +1,4 @@
-package dev.alphasucks.aea.compat.spellengine;
+package dev.alphasucks.aea.compat.spell_engine;
 
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Applies {@code aea-spellengine.mixins.json} only when Spell Engine is installed. It looks for the target's class
+ * Applies {@code aea-spell_engine.mixins.json} only when Spell Engine is installed. It looks for the target's class
  * file instead of loading the class, so nothing is defined early.
  */
 public final class SpellEngineMixinPlugin implements IMixinConfigPlugin {

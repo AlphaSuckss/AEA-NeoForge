@@ -1,8 +1,8 @@
-package dev.alphasucks.aea.compat.spellengine.mixin;
+package dev.alphasucks.aea.compat.spell_engine.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.alphasucks.aea.compat.spellengine.ModifySpellPower;
+import dev.alphasucks.aea.compat.spell_engine.ModifySpellPower;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.spell_engine.api.spell.Spell;

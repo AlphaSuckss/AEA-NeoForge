@@ -1,4 +1,4 @@
-package dev.alphasucks.aea.compat.spellengine;
+package dev.alphasucks.aea.compat.spell_engine;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -19,6 +19,7 @@ import dev.overgrown.apoli.condition.context.BiEntityCtx;
 import dev.overgrown.apoli.condition.context.DamageCtx;
 import dev.overgrown.apoli.condition.context.EntityCtx;
 import dev.overgrown.apoli.condition.context.ItemCtx;
+import dev.overgrown.apoli.power.PowerContainer;
 import dev.overgrown.apoli.power.PowerLookup;
 import dev.overgrown.apoli.power.PowerType;
 import dev.overgrown.apoli.power.PowerTypeUsage;
@@ -101,10 +102,12 @@ public final class SpellEngineTypes {
         /** Null lets Spell Engine decide; a failed attempt stops the cast on that side. */
         static SpellCast.Attempt attempt(Player caster, Holder<Spell> spell) {
             if (caster == null || (!caster.level().isClientSide() && !PREVENT_HELD.isHeld())) return null;
-            List<PreventCfg> active = ActiveConfigs.of(caster, PREVENT, PreventCfg.class);
-            for (int i = 0; i < active.size(); i++) {
-                PreventCfg cfg = active.get(i);
-                if (!cfg.filter().any() && !cfg.filter().test(spell)) continue;
+            PowerContainer container = ActiveConfigs.holder(caster, PREVENT);
+            if (container == null) return null;
+            List<ResourceLocation> powers = container.powersOfType(PREVENT);
+            for (int i = 0; i < powers.size(); i++) {
+                PreventCfg cfg = ActiveConfigs.config(caster, container, powers.get(i), PreventCfg.class);
+                if (cfg == null || (!cfg.filter().any() && !cfg.filter().test(spell))) continue;
                 cfg.message().ifPresent(m -> caster.displayClientMessage(m, true));
                 return SpellCast.Attempt.none();
             }

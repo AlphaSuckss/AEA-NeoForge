@@ -1,9 +1,9 @@
-package dev.alphasucks.aea.compat.spellengine.mixin;
+package dev.alphasucks.aea.compat.spell_engine.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.alphasucks.aea.compat.spellengine.GrantSpellPower;
+import dev.alphasucks.aea.compat.spell_engine.GrantSpellPower;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
