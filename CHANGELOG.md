@@ -13,6 +13,21 @@ Every change to AEA for NeoForge 1.21.1, newest first.
 - Mind control: the bi-entity action `aea:mind_control` lets a player take over a mob or another player, at any distance and in any dimension. The player sees through the target's eyes and their keys move it, while their body stays behind and takes their damage. Packs choose what is taken over (`controls`: movement, look, jump, sneak, sprint, attack, use, hotbar, drop, swap hands, chat, commands), and can set a `duration`, a `release_condition`, a `struggle` count to break free, `kill_credit`, `close_screens`, whether the controller's body can be hurt (`body_damage`), how much of the target's damage also hits the controller (`share_damage`), and `on_start`/`on_release` actions. Also adds the entity action `aea:release_mind_control` and the conditions `aea:mind_controlled`, `aea:mind_controlling` and `aea:mind_controls`. A player who disconnects or a server that stops mid-control puts the controller back in their body on their next login.
 - Origin grid: with Origins installed, the choose-origin screen shows every origin of the layer as icons in a grid (35 per page), with the origin's window beside it. Ported from Alternate Origin GUI 1.1.5 by UltrusBot (MIT). Players can switch it off with `origin_screen.grid` in `aea-client.toml`; on screens too small for it, Origins' arrows stay.
 - `aea:prevent_spawn_point`: a power that stops the player's spawn point from being set or moved by beds, respawn anchors, `/spawnpoint` or anything else, chosen with `source`, with an optional `message`. Sleeping and clearing a spawn point still work.
+- TaCZ compatibility, active only when TaCZ is installed:
+  - `aea:modify_gun`: changes gun stats with Apoli modifiers: `damage`, `fire_rate`, `recoil`, `inaccuracy`, `aim_inaccuracy`, `aim_time`, `bullet_speed`, `armor_ignore`, `headshot_multiplier`, `knockback`, `pierce`, `effective_range`, `weight`, plus `ammo_save_chance`. Stacks with attachments, and updates the held gun when the power turns on or off.
+  - `aea:prevent_gun_use`: blocks `shoot`, `aim`, `reload` and `melee`, each switchable, with an optional `message`.
+  - Gun event powers: `aea:action_on_gun_fire`, `aea:action_on_gun_hit` and `aea:action_on_gun_kill` (with `headshot`), `aea:action_on_bullet_hit_block`, `aea:action_on_gun_reload` (`when`: start or finish) and `aea:action_on_gun_melee`.
+  - Conditions: item `aea:gun` (gun, type, fire mode, magazine ammo, attachments) and `aea:gun_ammo`; entity `aea:aiming_gun` and `aea:reloading_gun`; damage `aea:gun` (gun, type, `headshot`).
+  - Entity and item action `aea:refill_ammo`.
+  - Every gun type takes `gun` and `gun_type` to limit it to some guns.
+- Spell Engine compatibility, active only when Spell Engine is installed:
+  - `aea:grant_spell`: gives spells as if from equipment, on Spell Engine's own spell hotbar. Active spells work whatever the player holds, unless `always` is false.
+  - `aea:modify_spell`: changes `cast_time`, `cooldown` and `range` with Apoli modifiers.
+  - `aea:prevent_spell_cast`: blocks casting, with an optional `message`.
+  - `aea:action_on_spell_cast`: runs an entity action on the caster and a bi-entity action on each target.
+  - Entity and bi-entity action `aea:cast_spell`: casts any spell at once, with or without its cost (`use_cost`).
+  - Conditions: entity `aea:casting_spell`, `aea:spell_on_cooldown` and `aea:knows_spell`; item `aea:has_spell`; damage `aea:spell_damage` (by school).
+  - Every spell type takes `spell` (ids or `#`tags) and `school` to limit it to some spells.
 - `effect_type` (`beneficial`, `harmful` or `neutral`) for `apoli:effect_immunity` and `apoli:status_effect`.
 - Data pack gamerules: `data/<namespace>/gamerules/<name>.json` adds the gamerule `<namespace>:<name>`, set with `/gamerule` and saved with the world. Packs read it with the `aea:gamerule` condition (which also reads vanilla gamerules, and works in every condition context including static) or the `gamerule(...)` expression function.
 - Settings `data_pack_textures.enabled` and `data_pack_assets.enabled` in `config/aea-common.toml`, both on by default.

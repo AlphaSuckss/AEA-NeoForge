@@ -30,6 +30,9 @@ public final class AEATypes {
         LegacyTypes.register();
         AddonTypes.register();
         dev.alphasucks.aea.mindcontrol.MindControlTypes.register();
+        // Optional mods: their classes are only loaded past these checks.
+        if (net.neoforged.fml.ModList.get().isLoaded("tacz")) dev.alphasucks.aea.compat.tacz.TaczTypes.register();
+        if (net.neoforged.fml.ModList.get().isLoaded("spell_engine")) dev.alphasucks.aea.compat.spellengine.SpellEngineTypes.register();
 
         AEA.LOGGER.info("[AEA] Registered {} extra power type(s) plus legacy actions/conditions.", PowerTypeRegistry.view().size() - before);
     }

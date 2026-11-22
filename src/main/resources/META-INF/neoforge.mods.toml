@@ -37,6 +37,9 @@ config="aea-origins.mixins.json"
 [[mixins]]
 config="aea-mindcontrol.mixins.json"
 
+[[mixins]]
+config="aea-spellengine.mixins.json"
+
 [[dependencies.aea]]
     modId="neoforge"
     type="required"
@@ -62,5 +65,19 @@ config="aea-mindcontrol.mixins.json"
     modId="origins"
     type="optional"
     versionRange="[1.49.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.aea]]
+    modId="tacz"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.aea]]
+    modId="spell_engine"
+    type="optional"
+    versionRange="*"
     ordering="AFTER"
     side="BOTH"

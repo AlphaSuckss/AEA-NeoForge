@@ -41,11 +41,23 @@ neoForge {
     }
 }
 
+repositories {
+    // TaCZ and Spell Engine, for the optional compat in compat/tacz and compat/spellengine.
+    exclusiveContent {
+        forRepository { maven { url = 'https://api.modrinth.com/maven' } }
+        filter { includeGroup 'maven.modrinth' }
+    }
+}
+
 dependencies {
     // Put Overgrown's jars in libs/ (apoli-1.124.0.jar, origins-1.49.0.jar).
     implementation files('libs/apoli-1.124.0.jar')
     // Origins is optional at runtime and AEA never imports it; compile against it only.
     compileOnly files('libs/origins-1.49.0.jar')
+    // Optional: AEA only touches these when the mod is installed.
+    compileOnly 'maven.modrinth:SzzJttH8:tJiZL0He'                   // TaCZ 1.2.0-hotfix
+    compileOnly 'maven.modrinth:spell-engine:1.10.9+1.21.1-neoforge'
+    compileOnly 'maven.modrinth:spell-power:1.6.0+1.21.1-neoforge'
 }
 
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.alphasucks.aea.compat.spellengine.mixin",
+  "plugin": "dev.alphasucks.aea.compat.spellengine.SpellEngineMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "SpellContainerSourceMixin",
+    "SpellParametersMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
