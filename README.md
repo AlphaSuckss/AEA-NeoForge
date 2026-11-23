@@ -5,7 +5,7 @@ on top of **Overgrown's Apoli 1.124.0 + Origins 1.49.0 for NeoForge 1.21.1**.
 
 ## Build
 1. Copy Overgrown's `apoli-1.124.0.jar` and `origins-1.49.0.jar` into `libs/` (they aren't included in this repo).
-2. `gradlew build` (JDK 21). TaCZ and Spell Engine, used only for the optional compat, are fetched from Modrinth's Maven. The jar lands in `build/libs/`.
+2. `gradlew build` (JDK 21). TaCZ, Spell Engine and AppleSkin, used only for the optional compat, are fetched from Modrinth's Maven. The jar lands in `build/libs/`.
 
 > The Gradle setup (ModDevGradle) hasn't been run yet: releases so far were compiled directly with `javac` against the NeoForge 21.1.265 jars. Report it if it doesn't build.
 
@@ -24,6 +24,8 @@ The port's smoke tests live in `src/selftest/java` and are not in the release ja
 | `mindcontrol/` | `aea:mind_control` and its action/conditions. `MindControl` runs sessions on the server (the controller becomes a spectator whose camera is the victim; a `ControlBody` stays behind and forwards damage; mobs are driven server-side with their AI paused by `MobMindControlMixin`). `mindcontrol/client` captures the controller's input and replays it on a controlled player's client. |
 | `compat/tacz/` | TaCZ types, registered only when TaCZ is installed (`TaczTypes`). Gun stats are changed in TaCZ's `AttachmentPropertyEvent`; uses are blocked and reacted to through TaCZ's own events. |
 | `compat/spell_engine/` | Spell Engine types, registered only when Spell Engine is installed (`SpellEngineTypes`). Spells are granted through Spell Engine's server-side containers; its mixins (`aea-spell_engine.mixins.json`, gated by `SpellEngineMixinPlugin`) add granted spells to the active set and apply `aea:modify_spell`. |
+| `compat/appleskin/` | AppleSkin hook, registered only when AppleSkin is installed: answers its `FoodValuesEvent` with Apoli's `modify_food` values. |
+| `redstone/` | `aea:redstone_pulse` and `/aea redstone pulse`. Pulses are kept per level and added to `SignalGetter.getSignal`/`getDirectSignal` (`SignalGetterPulseMixin`), which every redstone block reads from. |
 | `compat/origins/` | Client-only extras for Origins, applied only when it is installed (`aea-origins.mixins.json`, gated by `OriginsMixinPlugin`): the origin grid on the choose-origin screen, ported from Alternate Origin GUI. |
 | `textures/` | Data pack textures: PNG files under `data/<namespace>/textures/` are sent to players and registered under `<namespace>:textures/...`. `PackTextures` is the server side, `textures/client` downloads, caches and registers them. |
 | `assets/` | Data pack assets: the `assets/` folder of the world's data packs is sent to players and loaded as a resource pack. `PackAssets` is the server side; `assets/client` downloads and caches the files, offers them to the game as an always-on pack (`AssetPackResources`) and reloads resources. |

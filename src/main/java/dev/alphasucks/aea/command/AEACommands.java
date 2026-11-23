@@ -40,6 +40,7 @@ public final class AEACommands {
                     AEA.LOGGER.info("[AEA] upgrade: {} => {}", in, out);
                     return 1;
                 })))
+            .then(dev.alphasucks.aea.redstone.RedstonePulseTypes.command())
         );
         // The port's smoke tests ship in a separate selftest jar; they are only wired up with -Daea.selftest=true.
         if (Boolean.getBoolean("aea.selftest")) registerSelfTest(d);

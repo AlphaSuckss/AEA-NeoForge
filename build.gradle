@@ -58,6 +58,7 @@ dependencies {
     compileOnly 'maven.modrinth:SzzJttH8:tJiZL0He'                   // TaCZ 1.2.0-hotfix
     compileOnly 'maven.modrinth:spell-engine:1.10.9+1.21.1-neoforge'
     compileOnly 'maven.modrinth:spell-power:1.6.0+1.21.1-neoforge'
+    compileOnly 'maven.modrinth:appleskin:3.0.9+mc1.21'
 }
 
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

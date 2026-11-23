@@ -18,7 +18,8 @@
     "common.EntitySeeInvisibleMixin",
     "compat.EffectImmunityPowerMixin",
     "compat.StatusEffectConditionMixin",
-    "common.SetSpawnCommandMixin"
+    "common.SetSpawnCommandMixin",
+    "common.SignalGetterPulseMixin"
   ],
   "client": [
     "client.LivingEntityRendererMixin",

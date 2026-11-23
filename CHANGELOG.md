@@ -2,6 +2,13 @@
 
 Every change to AEA for NeoForge 1.21.1, newest first.
 
+## Unreleased
+
+### Added
+- `aea:redstone_pulse` (block action): sends a short redstone signal into a block (`receive`) or out of a position (`emit`), with `strength`, `duration`, `strong` and `sides`. Nothing is placed: blocks see the power the way they see a lever's, so pistons, wire, doors and modded machines react.
+- `/aea redstone pulse <pos> [receive|emit] [strength] [duration] [strong]`, the same pulse from commands and functions.
+- AppleSkin compatibility, active only when AppleSkin is installed: its tooltips and hunger bar preview show the values `apoli:modify_food` gives.
+
 ## 1.5.0
 
 ### Added

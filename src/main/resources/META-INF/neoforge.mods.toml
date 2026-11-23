@@ -81,3 +81,10 @@ config="aea-spell_engine.mixins.json"
     versionRange="*"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.aea]]
+    modId="appleskin"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
