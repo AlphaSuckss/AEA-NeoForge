@@ -2,7 +2,7 @@
 
 Every change to AEA for NeoForge 1.21.1, newest first.
 
-## Unreleased
+## 1.6.0
 
 ### Added
 - `aea:redstone_pulse` (block action): sends a short redstone signal into a block (`receive`) or out of a position (`emit`), with `strength`, `duration`, `strong` and `sides`. Nothing is placed: blocks see the power the way they see a lever's, so pistons, wire, doors and modded machines react.
