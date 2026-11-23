@@ -20,7 +20,6 @@ import java.util.function.IntSupplier;
 
 /** {@code /aea validate}, {@code /aea upgrade}, and AEA's {@code /scale} when Pehkui isn't installed. */
 public final class AEACommands {
-    private static final String SELFTEST_COMMANDS = "dev.alphasucks.aea.command.SelfTestCommands";
 
     @SubscribeEvent
     public void onRegister(RegisterCommandsEvent event) {
@@ -42,19 +41,8 @@ public final class AEACommands {
                 })))
             .then(dev.alphasucks.aea.redstone.RedstonePulseTypes.command())
         );
-        // The port's smoke tests ship in a separate selftest jar; they are only wired up with -Daea.selftest=true.
-        if (Boolean.getBoolean("aea.selftest")) registerSelfTest(d);
     }
 
-    private static void registerSelfTest(CommandDispatcher<CommandSourceStack> d) {
-        try {
-            Class.forName(SELFTEST_COMMANDS).getMethod("register", CommandDispatcher.class).invoke(null, d);
-        } catch (ClassNotFoundException e) {
-            AEA.LOGGER.warn("[AEA] -Daea.selftest=true is set, but this is the release jar: /aea selftest needs the selftest jar.");
-        } catch (ReflectiveOperationException e) {
-            AEA.LOGGER.error("[AEA] Couldn't register /aea selftest", e);
-        }
-    }
 
     static int guard(IntSupplier body) {
         try {

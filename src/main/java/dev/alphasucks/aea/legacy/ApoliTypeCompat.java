@@ -14,8 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Apoli 2.9.2 / Origins 1.10.2 JSON that Overgrown reads differently. Found by the field-by-field audit
- * ({@code /aea selftest audit}); see COVERAGE-apoli.md.
+ * Apoli 2.9.2 / Origins 1.10.2 JSON that Overgrown reads differently, found by comparing every field of the old
+ * types with Overgrown's codecs.
  */
 final class ApoliTypeCompat {
     private ApoliTypeCompat() {}

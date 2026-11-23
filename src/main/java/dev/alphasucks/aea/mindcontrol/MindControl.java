@@ -643,9 +643,9 @@ public final class MindControl {
         if (FMLEnvironment.dist.isClient()) ctx.enqueueWork(() -> dev.alphasucks.aea.mindcontrol.client.MindControlClient.receive(p));
     }
 
-    // ---- self test hooks ----
+    // ---- input from code ----
 
-    /** For the self tests: feeds input as if the controller's client had sent it. */
+    /** Feeds input as if the controller's client had sent it. */
     public static void testInput(ServerPlayer controller, ControlInput input) {
         receiveInput(controller, input);
     }

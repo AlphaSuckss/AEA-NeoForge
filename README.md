@@ -9,7 +9,6 @@ on top of **Overgrown's Apoli 1.124.0 + Origins 1.49.0 for NeoForge 1.21.1**.
 
 > The Gradle setup (ModDevGradle) hasn't been run yet: releases so far were compiled directly with `javac` against the NeoForge 21.1.265 jars. Report it if it doesn't build.
 
-The port's smoke tests live in `src/selftest/java` and are not in the release jar. `gradlew selftestJar` (or `build.sh`) builds `aea-<version>-selftest.jar` with them; `runServer` uses them too. With `-Daea.selftest=true` that jar adds the destructive `/aea selftest grant|functions|player|gui|items|legacy|audit|probe <power>`.
 
 ## Layout
 | Package | What it does |
