@@ -7,7 +7,6 @@ on top of **Overgrown's Apoli 1.124.0 + Origins 1.49.0 for NeoForge 1.21.1**.
 1. Copy Overgrown's `apoli-1.124.0.jar` and `origins-1.49.0.jar` into `libs/` (they aren't included in this repo).
 2. `gradlew build` (JDK 21). TaCZ, Spell Engine and AppleSkin, used only for the optional compat, are fetched from Modrinth's Maven. The jar lands in `build/libs/`.
 
-> The Gradle setup (ModDevGradle) hasn't been run yet: releases so far were compiled directly with `javac` against the NeoForge 21.1.265 jars. Report it if it doesn't build.
 
 
 ## Layout
