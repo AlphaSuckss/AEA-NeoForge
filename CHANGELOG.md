@@ -47,29 +47,11 @@ Every change to AEA for NeoForge 1.21.1, newest first.
 ### Changed
 - The documentation moved to its own repository, [AEA-Docs](https://github.com/AlphaSuckss/AEA-Docs).
 - Origins is now an optional dependency. AEA never used Origins classes, so it runs on Apoli alone; with Origins installed nothing changes.
-- Brought in line with Overgrown's addon guide:
-  - Optional nested actions and conditions in AEA's types are read with `LoggedOptionalField`: a malformed action logs a warning naming the power and field, and a malformed condition fails the power instead of being dropped silently.
-  - The power `condition` of `aea:hitbox_part` and `aea:mob_ai` is checked in `isActive`, on the context Apoli already builds, instead of building a new one every tick.
-  - `aea:see_invisible` resolves its `condition` on the server and the client reads the result (`resolvesForClient`).
-  - Hooks that run for every entity (`canAttack`, sleeping near monsters, powder snow, sprint particles, `apoli:status_effect`, skin and upside-down rendering) use `@ModifyReturnValue` instead of a cancellable `@Inject`, and server hooks skip all work when no entity holds the power type.
-  - Conditions no longer allocate or look things up per test: `aea:gamerule` parses its rule once, `effect_type` decodes once, and the legacy `apoli:category`, `apoli:material`, `apoli:fluid` and `apoli:nbt` conditions resolve their tags, fluid and component types at load.
-  - The legacy `damage_over_time` keeps its timer in Apoli's aux data and only writes it when the entity enters or leaves the condition, instead of rewriting persistent NBT every tick.
-  - `onRemoved` hooks wait until the last source of a power is gone.
-  - Client-only mixins are marked `@OnlyIn(Dist.CLIENT)`.
-  - The list of mobs provoked by `sync:mobs_ignore` holders is cleared when the holder leaves.
-
-### Removed
-- AEA's own power tag files (`data/<namespace>/tags/power/`). Apoli already gives powers a `tags` field, so `#tag` sources now read that instead.
 
 ## 1.2.2
 
 ### Fixed
 - Powers from 1.20.1 packs that set no `key` now use Origins' primary ability key. Before, they used a key that is unbound by default, so abilities such as a keyless `active_self` could not be triggered.
-
-## 1.2.1
-
-### Changed
-- Source layout cleanup: one file per type, arranged like Overgrown's Apoli. No change in behaviour.
 
 ## 1.2.0
 

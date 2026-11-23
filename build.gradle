@@ -50,3 +50,10 @@ dependencies {
 }
 
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+jar {
+    manifest.attributes(
+        'Implementation-Title': 'AEA',
+        'Implementation-Version': project.mod_version
+    )
+}
